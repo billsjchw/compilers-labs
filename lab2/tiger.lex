@@ -85,6 +85,32 @@ printable [\40-\41\43-\133\135-\176]
 escape (\\[nt\"\\]|\\\^[A-Z]|\\[0-9][0-9][0-9]|\\[\ \t\n\f]+\\)
 
 %%
+  /*
+   * Comments handling
+   * In ORIGIN state,
+   *   when a start of comment is matched, comm_depth (a global variable)
+   *   is set to 1 and the state is changed to COMMENT.
+   * In COMMENT state,
+   *   when a start of comment is matched, comm_depth is increased by 1;
+   *   when an end of comment is matched, comm_depth is decreased by 1 and
+   *   if comm_depth is decreased to zero then the state is changed to ORIGIN;
+   *   when none of a start of comment or an end of comment can be matched,
+   *   the lexical analyzer matched a character and continue.
+   *
+   * Strings handling
+   * A string is a sequence of printable characters (except \ and ") and
+   * escape sequences enclosed by quotes ("). Printable characters and
+   * escape sequences are defined in the Lex definitions section.
+   *
+   * Error handling
+   * In ORIGIN state, when none of the normal tokens and whitespace
+   * can be matched, a character is matched and an error message is
+   * printed.
+   *
+   * End-of-file handling
+   * Not implemented.
+   */
+
 <ORIGIN>, { adjust(); return COMMA; }
 <ORIGIN>: { adjust(); return COLON; }
 <ORIGIN>; { adjust(); return SEMICOLON; }
