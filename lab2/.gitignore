@@ -1,0 +1,6 @@
+.vscode/
+*.o
+lex.yy.c
+lextest
+*.tgz
+
