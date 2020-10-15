@@ -1,0 +1,8 @@
+.vscode/
+*.out
+*.o
+lex.yy.c
+y.output
+y.tab.c
+y.tab.h
+*.tar.gz
