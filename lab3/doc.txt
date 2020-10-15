@@ -1,0 +1,61 @@
+Most of the shift/reduce conflicts are caused by lacking informantion about the precedence and associativity of operators, and these conflicts are solved with precedence directives. There are three kinds of special shift/reduce conflicts.
+
+
+1.
+-----------------------------------------------
+State
+
+   19 exp: ID . LPAREN args RPAREN
+   20    | ID . LBRACE recorditems RBRACE
+   29    | ID . LBRACK exp RBRACK OF exp
+   61 lvalue: ID .
+   64       | ID . LBRACK exp RBRACK
+
+    LBRACK  shift, and go to state 16
+    LBRACK    [reduce using rule 61 (lvalue)]
+-----------------------------------------------
+In this case, the parser should shift the LBRACK, because the parser cannot decide whether the expression to parse is a "lvalue[exp]" or a "ID[exp] OF exp" until it gets the token after the RBRACK.
+
+2.
+-----------------------------------------------
+State
+
+   48 tydecs: tydec .
+   49       | tydec . tydecs
+
+    TYPE  shift, and go to state 26
+    TYPE      [reduce using rule 48 (tydecs)]
+-----------------------------------------------
+State
+
+   54 fundecs: fundec .
+   55        | fundec . fundecs
+
+    FUNCTION  shift, and go to state 24
+    FUNCTION  [reduce using rule 54 (fundecs)]
+-----------------------------------------------
+In this case, the parser should shift the TYPE/FUNCTION, because this can ensure a sequence of typedec/fundec to be parsed as one typedecs/fundecs instead of a sequence of typedecs/fundecs.
+
+3.
+-----------------------------------------------
+State
+
+    2 exp: exp . AND exp
+    3    | exp . OR exp
+    4    | exp . EQ exp
+    5    | exp . NEQ exp
+    6    | exp . LT exp
+    7    | exp . GT exp
+    8    | exp . LE exp
+    9    | exp . GE exp
+   10    | exp . PLUS exp
+   11    | exp . MINUS exp
+   12    | exp . TIMES exp
+   13    | exp . DIVIDE exp
+   23    | IF exp THEN exp .
+   24    | IF exp THEN exp . ELSE exp
+
+    ELSE    shift, and go to state 103
+    ELSE      [reduce using rule 23 (exp)]
+-----------------------------------------------
+In this case, the parser should shift the ELSE, because this can ensure ELSEs to be binded with the nearest THENs.
