@@ -3,24 +3,64 @@
 #include "symbol.h"
 #include "env.h"
 
-/*Lab4: Your implementation of lab4*/
-
 E_enventry E_VarEntry(Ty_ty ty)
 {
-	return NULL;
+	E_enventry ret;
+
+	ret = (E_enventry) checked_malloc(sizeof(*ret));
+	ret->kind = E_varEntry;
+	ret->u.var.ty = ty;
+
+	return ret;
 }
 
 E_enventry E_FunEntry(Ty_tyList formals, Ty_ty result)
 {
-	return NULL;
+	E_enventry ret;
+
+	ret = (E_enventry) checked_malloc(sizeof(*ret));
+	ret->kind = E_funEntry;
+	ret->u.fun.formals = formals;
+	ret->u.fun.result = result;
+
+	return ret;
 }
 
 S_table E_base_tenv(void)
 {
-	return NULL;
+	S_table ret;
+
+	ret = S_empty();
+	S_enter(ret, S_Symbol("int"), Ty_Int());
+	S_enter(ret, S_Symbol("string"), Ty_String());
+
+	return ret;
 }
 
 S_table E_base_venv(void)
 {
-	return NULL;
+	S_table ret;
+
+	ret = S_empty();
+	S_enter(ret, S_Symbol("print"), E_FunEntry(
+			Ty_TyList(Ty_String(), NULL), Ty_Void()));
+	S_enter(ret, S_Symbol("flush"), E_FunEntry(NULL, Ty_Void()));
+	S_enter(ret, S_Symbol("getchar"), E_FunEntry(NULL, Ty_String()));
+	S_enter(ret, S_Symbol("ord"), E_FunEntry(
+			Ty_TyList(Ty_String(), NULL), Ty_Int()));
+	S_enter(ret, S_Symbol("chr"), E_FunEntry(
+			Ty_TyList(Ty_Int(), NULL), Ty_String()));
+	S_enter(ret, S_Symbol("size"), E_FunEntry(
+			Ty_TyList(Ty_String(), NULL), Ty_Int()));
+	S_enter(ret, S_Symbol("substring"), E_FunEntry(
+		Ty_TyList(Ty_String(), Ty_TyList(Ty_Int(), Ty_TyList(
+		Ty_Int(), NULL))), Ty_String()));
+	S_enter(ret, S_Symbol("concat"), E_FunEntry(Ty_TyList(
+			Ty_String(), Ty_TyList(Ty_String(), NULL)), Ty_String()));
+	S_enter(ret, S_Symbol("not"), E_FunEntry(
+			Ty_TyList(Ty_Int(), NULL), Ty_Int()));
+	S_enter(ret, S_Symbol("exit"), E_FunEntry(
+			Ty_TyList(Ty_Int(), NULL), Ty_Void()));
+
+	return ret;
 }
