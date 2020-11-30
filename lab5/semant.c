@@ -263,17 +263,17 @@ Tr_exp transDec(S_table venv, S_table tenv, A_dec dec, Tr_level level,
             struct expty et = {NULL, NULL};
             Ty_fieldList fields = transFieldList(tenv, fundecs->head->params);
             Ty_ty result = fundecs->head->result != NULL ? S_look(tenv, fundecs->head->result) : Ty_Void();
-            U_boolList escapes = fieldListToEscapeList(fundecs->head->params);
             E_enventry entry = S_look(venv, fundecs->head->name);
             Tr_level newLevel = entry->u.fun.level;
-            Tr_accessList accesses = NULL;
+            Tr_accessList accesses = Tr_formals(newLevel);
             S_beginScope(venv);
-            accesses = allocFormals(venv, fields, escapes, newLevel);
+            for (; fields != NULL; fields = fields->tail, accesses = accesses->tail)
+                S_enter(venv, fields->head->name, E_VarEntry(accesses->head, fields->head->ty));
             et = transExp(venv, tenv, fundecs->head->body, newLevel, NULL);
             S_endScope(venv);
             if (!isEqualTy(et.ty, result))
                 exit(1);
-            Tr_procEntryExit(newLevel, et.exp, accesses);
+            Tr_procEntryExit(newLevel, et.exp);
         }
         return Tr_nop();
     }
@@ -457,6 +457,6 @@ static Tr_accessList allocFormals(S_table venv, Ty_fieldList fields,
         return NULL;
 
     access = Tr_allocLocal(level, escapes->head);
-    S_enter(venv, fields->head->name, E_VarEntry(access, fields->head->ty));
+    
     return Tr_AccessList(access, allocFormals(venv, fields->tail, escapes->tail, level));
 }

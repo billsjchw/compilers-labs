@@ -16,12 +16,6 @@ struct Tr_access_ {
 	F_access access;
 };
 
-
-struct Tr_accessList_ {
-	Tr_access head;
-	Tr_accessList tail;	
-};
-
 struct Tr_level_ {
 	F_frame frame;
 	Tr_level parent;
@@ -117,7 +111,7 @@ Tr_access Tr_allocLocal(Tr_level level, bool escape) {
     return Tr_Access(level, access);
 }
 
-void Tr_procEntryExit(Tr_level level, Tr_exp body, Tr_accessList formals) {
+void Tr_procEntryExit(Tr_level level, Tr_exp body) {
     T_stm stm = F_procEntryExit1(level->frame, unNx(body));
     
     frags = F_FragList(F_ProcFrag(stm, level->frame), frags);

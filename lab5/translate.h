@@ -14,13 +14,18 @@ typedef struct Tr_access_ *Tr_access;
 typedef struct Tr_accessList_ *Tr_accessList;
 typedef struct Tr_level_ *Tr_level;
 
+struct Tr_accessList_ {
+	Tr_access head;
+	Tr_accessList tail;	
+};
+
 Tr_expList Tr_ExpList(Tr_exp, Tr_expList);
 Tr_accessList Tr_AccessList(Tr_access, Tr_accessList);
 Tr_level Tr_outermost(void);
 Tr_level Tr_newLevel(Tr_level, Temp_label, U_boolList);
 Tr_accessList Tr_formals(Tr_level);
 Tr_access Tr_allocLocal(Tr_level, bool);
-void Tr_procEntryExit(Tr_level, Tr_exp, Tr_accessList);
+void Tr_procEntryExit(Tr_level, Tr_exp);
 F_fragList Tr_getResult(void);
 Tr_exp Tr_nop();
 Tr_exp Tr_simpleVar(Tr_access, Tr_level);
