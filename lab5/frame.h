@@ -33,6 +33,19 @@ struct F_fragList_
 	F_fragList tail;
 };
 
-F_fragList F_FragList(F_frag head, F_fragList tail);
+F_fragList F_FragList(F_frag, F_fragList);
+
+extern const int F_wordSize;
+
+Temp_temp F_FP(void);
+F_frame F_newFrame(Temp_label, U_boolList);
+F_accessList F_formals(F_frame);
+F_access F_allocLocal(F_frame, bool);
+T_stm F_procEntryExit1(F_frame, T_stm);
+T_exp F_simpleVar(F_access, T_exp);
+T_exp F_staticLink(T_exp);
+F_frag F_string(Temp_label, string);
+Temp_label F_name(F_frame);
+T_exp F_externalCall(string, T_expList);
 
 #endif
