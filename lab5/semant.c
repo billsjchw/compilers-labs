@@ -46,7 +46,7 @@ F_fragList SEM_transProg(A_exp exp) {
     Temp_label label = Temp_newlabel();
     Tr_level level = Tr_newLevel(Tr_outermost(), label, NULL);
 	struct expty et = transExp(venv, tenv, exp, level, NULL);
-    Tr_procEntryExit(level, et.exp, NULL);
+    Tr_procEntryExit(level, et.exp);
     
     return Tr_getResult();
 }
@@ -111,11 +111,12 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
         A_expList exps = NULL;
         Tr_expList exprs = NULL;
         E_enventry entry = S_look(venv, exp->u.call.func);
-        if (entry == NULL)
+        if (entry == NULL || entry->kind != E_funEntry)
             exit(1);
-        return expTy(Tr_callExp(level, entry->u.fun.level,
+        struct expty et = expTy(Tr_callExp(entry->u.fun.label, level, entry->u.fun.level,
                                 transArgList(venv, tenv, exp->u.call.args, entry->u.fun.formals, level, done)),
                      actualTy(entry->u.fun.result));
+        return et;
     }
     case A_opExp: {
         struct expty etLeft = transExp(venv, tenv, exp->u.op.left, level, done);
@@ -127,10 +128,12 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
         case A_divideOp:
             if (etLeft.ty->kind != Ty_int || etRight.ty->kind != Ty_int)
                 exit(1);
+            break;
         case A_eqOp:
         case A_neqOp:
             if (!isEqualTy(etLeft.ty, etRight.ty))
                 exit(1);
+            break;
         case A_ltOp:
         case A_gtOp:
         case A_leOp:
@@ -140,6 +143,7 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
                 (etLeft.ty->kind != Ty_string ||
                  etRight.ty->kind != Ty_string))
                 exit(1);
+            break;
         default:
             assert(0);
         }
@@ -172,13 +176,15 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
     case A_ifExp: {
         struct expty etTest = transExp(venv, tenv, exp->u.iff.test, level, done);
         struct expty etThen = transExp(venv, tenv, exp->u.iff.then, level, done);
+        
         if (etTest.ty->kind != Ty_int)
             exit(1);
         if (exp->u.iff.elsee != NULL) {
             struct expty etElse = transExp(venv, tenv, exp->u.iff.elsee, level, done);
             if (!isEqualTy(etThen.ty, etElse.ty))
                 exit(1);
-            return expTy(Tr_ifExp(etTest.exp, etThen.exp, etElse.exp), etThen.ty);
+            struct expty et = expTy(Tr_ifExp(etTest.exp, etThen.exp, etElse.exp), etThen.ty);
+            return et;
         } else {
             if (etThen.ty->kind != Ty_void)
                 exit(1);
@@ -237,8 +243,7 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
     }
 }
 
-Tr_exp transDec(S_table venv, S_table tenv, A_dec dec, Tr_level level,
-                Temp_label done) {
+Tr_exp transDec(S_table venv, S_table tenv, A_dec dec, Tr_level level, Temp_label done) {
     switch (dec->kind) {
     case A_functionDec: {
         A_fundecList fundecs = NULL;
@@ -417,10 +422,15 @@ static struct expty transSeqExp(S_table venv, S_table tenv, A_expList exps, Tr_l
 }
 
 static Tr_expList transDecList(S_table venv, S_table tenv, A_decList decs, Tr_level level, Temp_label done) {
+    Tr_exp exp = NULL;
+    Tr_expList exps = NULL;
+    
     if (decs == NULL)
         return NULL;
-    
-    return Tr_ExpList(transDec(venv, tenv, decs->head, level, done), transDecList(venv, tenv, decs->tail, level, done));
+
+    exp = transDec(venv, tenv, decs->head, level, done);
+    exps = transDecList(venv, tenv, decs->tail, level, done);
+    return Tr_ExpList(exp, exps);
 }
 
 static Ty_fieldList transFieldList(S_table tenv, A_fieldList fields) {

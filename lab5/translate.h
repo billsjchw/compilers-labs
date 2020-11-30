@@ -34,7 +34,7 @@ Tr_exp Tr_subscriptVar(Tr_exp, Tr_exp);
 Tr_exp Tr_nilExp();
 Tr_exp Tr_intExp(int);
 Tr_exp Tr_stringExp(string);
-Tr_exp Tr_callExp(Tr_level, Tr_level, Tr_expList);
+Tr_exp Tr_callExp(Temp_label, Tr_level, Tr_level, Tr_expList);
 Tr_exp Tr_intOpExp(A_oper, Tr_exp, Tr_exp);
 Tr_exp Tr_stringOpExp(A_oper, Tr_exp, Tr_exp);
 Tr_exp Tr_recordExp(Tr_expList);

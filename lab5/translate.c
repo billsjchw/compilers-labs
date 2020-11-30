@@ -126,7 +126,7 @@ Tr_exp Tr_nop() {
 }
 
 Tr_exp Tr_simpleVar(Tr_access access, Tr_level level) {
-    return simpleVar(access, level, T_Temp(F_FP()));
+    return Tr_Ex(simpleVarHelper(access, level, T_Temp(F_FP())));
 }
 
 Tr_exp Tr_fieldVar(Tr_exp base, int offset) {
@@ -134,7 +134,7 @@ Tr_exp Tr_fieldVar(Tr_exp base, int offset) {
 }
 
 Tr_exp Tr_subscriptVar(Tr_exp base, Tr_exp offset) {
-    return Tr_Ex(T_Mem(T_Binop(T_plus, unEx(base), T_Binop(T_mul, offset, T_Const(F_wordSize)))));
+    return Tr_Ex(T_Mem(T_Binop(T_plus, unEx(base), T_Binop(T_mul, unEx(offset), T_Const(F_wordSize)))));
 }
 
 Tr_exp Tr_nilExp() {
@@ -153,14 +153,14 @@ Tr_exp Tr_stringExp(string value) {
     return Tr_Ex(T_Name(label));
 }
 
-Tr_exp Tr_callExp(Tr_level caller, Tr_level callee, Tr_expList args) {
-    return T_Call(
-        T_Name(F_name(callee->frame)),
+Tr_exp Tr_callExp(Temp_label label, Tr_level caller, Tr_level callee, Tr_expList args) {
+    return Tr_Ex(T_Call(
+        T_Name(label),
         T_ExpList(
             callExpStaticLink(caller, callee, T_Temp(F_FP())),
             expListToExpList(args)
         )
-    );
+    ));
 }
 
 Tr_exp Tr_intOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
@@ -190,9 +190,11 @@ Tr_exp Tr_intOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
     }
 }
 
-/* TODO */
 Tr_exp Tr_stringOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
-    return NULL;
+    return Tr_Ex(F_externalCall(
+        "stringCompare",
+        T_ExpList(T_Const(oper), T_ExpList(unEx(left), T_ExpList(unEx(right), NULL)))
+    ));
 }
 
 Tr_exp Tr_recordExp(Tr_expList exps) {
@@ -223,7 +225,7 @@ Tr_exp Tr_ifExp(Tr_exp test, Tr_exp then, Tr_exp elsee) {
     Temp_label true = Temp_newlabel();
     Temp_label false = Temp_newlabel();
     Temp_label join = Temp_newlabel();
-    Temp_temp temp = Temp_newtemp;
+    Temp_temp temp = Temp_newtemp();
     struct Cx cx = unCx(test);
 
     doPatch(cx.trues, true);
@@ -265,7 +267,7 @@ Tr_exp Tr_forExp(Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done) {
 
     return Tr_Nx(
         T_Seq(T_Move(T_Temp(cnt), unEx(lo)),
-        T_Seq(T_Move(limit, unEx(hi)),
+        T_Seq(T_Move(T_Temp(limit), unEx(hi)),
         T_Seq(T_Cjump(T_le, T_Temp(cnt), T_Temp(limit), start, done),
         T_Seq(T_Label(start),
         T_Seq(unNx(body),
@@ -291,7 +293,7 @@ Tr_exp Tr_varDec(Tr_access access, Tr_exp init) {
     return Tr_Nx(T_Move(F_simpleVar(access->access, T_Temp(F_FP())), unEx(init)));
 }
 
-static Tr_level outermostLevel = {NULL, NULL};
+static struct Tr_level_ outermostLevel = {NULL, NULL};
 static F_fragList frags = NULL;
 
 static Tr_access Tr_Access(Tr_level level, F_access access) {
