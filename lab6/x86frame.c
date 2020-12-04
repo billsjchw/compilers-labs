@@ -8,6 +8,7 @@
 #include "table.h"
 #include "tree.h"
 #include "frame.h"
+#include "assem.h"
 
 #define FORMAL_REG_NUM 6
 
@@ -23,8 +24,8 @@ struct F_access_ {
 };
 
 struct F_frame_ {
-    int inFrameCnt;
-    Temp_label label;
+    int size;
+    Temp_label name;
     F_accessList formals;
     T_stm shiftOfView;
 };
@@ -34,32 +35,30 @@ static Temp_temp rdi;
 static Temp_temp rsi;
 static Temp_temp rdx;
 static Temp_temp rcx;
-static Temp_temp r8;
-static Temp_temp r9;
 static Temp_temp rbx;
 static Temp_temp rbp;
+static Temp_temp rsp;
+static Temp_temp rax;
+static Temp_temp r8;
+static Temp_temp r9;
+static Temp_temp r10;
+static Temp_temp r11;
 static Temp_temp r12;
 static Temp_temp r13;
 static Temp_temp r14;
 static Temp_temp r15;
+static Temp_tempList callersaves;
+static Temp_tempList calleesaves;
+static Temp_tempList argregs;
+static Temp_tempList returnsinks;
 
-
-static Temp_temp F_RDI();
-static Temp_temp F_RSI();
-static Temp_temp F_RDX();
-static Temp_temp F_RCX();
-static Temp_temp F_R8();
-static Temp_temp F_R9();
-static Temp_temp F_RBX();
-static Temp_temp F_RBP();
-static Temp_temp F_R12();
-static Temp_temp F_R13();
-static Temp_temp F_R14();
-static Temp_temp F_R15();
 static F_access F_InFrameAccess(int);
 static F_access F_InRegAccess(Temp_temp);
 static F_accessList F_AccessList(F_access, F_accessList);
-static F_accessList formalAccessList(int, int, U_boolList);
+static F_accessList formalAccessList(int, U_boolList, F_frame);
+static T_stm shiftOfView(F_accessList, Temp_tempList);
+static T_stm saveCalleesaves(Temp_tempList, Temp_tempList);
+static T_stm restoreCalleesaves(Temp_tempList, Temp_tempList);
 
 F_frag F_StringFrag(Temp_label label, string str) {
     F_frag frag = (F_frag) checked_malloc(sizeof(*frag));
@@ -91,6 +90,7 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
 }                                                     
 
 const int F_wordSize = 8;
+const int F_argregsNum = 6;
 
 Temp_temp F_FP(void) {
     if (fp == NULL)
@@ -99,25 +99,167 @@ Temp_temp F_FP(void) {
     return fp;
 }
 
-F_frame F_newFrame(Temp_label label, U_boolList escapes) {
-    Temp_temp formalRegs[] = {F_RDI(), F_RSI(), F_RDX(), F_RCX(), F_R8(), F_R9()};
-    T_stm shiftOfView = T_Exp(T_Const(0));
-    F_accessList formals = formalAccessList(0, 0, escapes);
-    int inRegCnt = 0;
+Temp_temp F_RDI(void) {
+    if (rdi == NULL)
+        rdi = Temp_newtemp();
+
+    return rdi;
+}
+
+Temp_temp F_RSI(void) {
+    if (rsi == NULL)
+        rsi = Temp_newtemp();
+
+    return rsi;
+}
+
+Temp_temp F_RDX(void) {
+    if (rdx == NULL)
+        rdx = Temp_newtemp();
+
+    return rdx;
+}
+
+Temp_temp F_RCX(void) {
+    if (rcx == NULL)
+        rcx = Temp_newtemp();
+
+    return rcx;
+}
+
+Temp_temp F_RBX(void) {
+    if (rbx == NULL)
+        rbx = Temp_newtemp();
+
+    return rbx;
+}
+
+Temp_temp F_RBP(void) {
+    if (rbp == NULL)
+        rbp = Temp_newtemp();
+
+    return rbp;
+}
+
+Temp_temp F_RSP(void) {
+    if (rsp == NULL)
+        rsp = Temp_newtemp();
+
+    return rsp;
+}
+
+Temp_temp F_RAX(void) {
+    if (rax == NULL)
+        rax = Temp_newtemp();
+
+    return rax;
+}
+
+Temp_temp F_R8(void) {
+    if (r8 == NULL)
+        r8 = Temp_newtemp();
+
+    return r8;
+}
+
+Temp_temp F_R9(void) {
+    if (r9 == NULL)
+        r9 = Temp_newtemp();
+
+    return r9;
+}
+
+Temp_temp F_R10(void) {
+    if (r10 == NULL)
+        r10 = Temp_newtemp();
+
+    return r10;
+}
+
+Temp_temp F_R11(void) {
+    if (r11 == NULL)
+        r11 = Temp_newtemp();
+
+    return r11;
+}
+
+Temp_temp F_R12(void) {
+    if (r12 == NULL)
+        r12 = Temp_newtemp();
+
+    return r12;
+}
+
+Temp_temp F_R13(void) {
+    if (r13 == NULL)
+        r13 = Temp_newtemp();
+
+    return r13;
+}
+
+Temp_temp F_R14(void) {
+    if (r14 == NULL)
+        r14 = Temp_newtemp();
+
+    return r14;
+}
+
+Temp_temp F_R15(void) {
+    if (r15 == NULL)
+        r15 = Temp_newtemp();
+
+    return r15;
+}
+
+Temp_tempList F_callersaves(void) {
+    if (callersaves == NULL)
+        callersaves = Temp_TempList(F_RAX(),
+                      Temp_TempList(F_RCX(),
+                      Temp_TempList(F_RDX(),
+                      Temp_TempList(F_RDI(),
+                      Temp_TempList(F_RSI(),
+                      Temp_TempList(F_RSP(),
+                      Temp_TempList(F_R8(),
+                      Temp_TempList(F_R9(),
+                      Temp_TempList(F_R10(),
+                      Temp_TempList(F_R11(), NULL))))))))));
+    return callersaves;
+}
+
+Temp_tempList F_calleesaves(void) {
+    if (calleesaves == NULL)
+        calleesaves = Temp_TempList(F_RBX(),
+                      Temp_TempList(F_RBP(),
+                      Temp_TempList(F_R12(),
+                      Temp_TempList(F_R13(),
+                      Temp_TempList(F_R14(),
+                      Temp_TempList(F_R15(), NULL))))));
+    return calleesaves;
+}
+
+Temp_tempList F_argregs(void) {
+    if (argregs == NULL)
+        argregs = Temp_TempList(F_RDI(),
+                  Temp_TempList(F_RSI(),
+                  Temp_TempList(F_RDX(),
+                  Temp_TempList(F_RCX(),
+                  Temp_TempList(F_R8(),
+                  Temp_TempList(F_R9(), NULL))))));
+    return argregs;
+}
+
+Temp_tempList F_returnsinks(void) {
+    if (returnsinks == NULL)
+        returnsinks = Temp_TempList(F_RAX(), Temp_TempList(F_RSP(), F_calleesaves()));
+    return returnsinks;
+}
+
+F_frame F_newFrame(Temp_label name, U_boolList escapes) {
     F_frame frame = (F_frame) checked_malloc(sizeof(*frame));
 
-    frame->inFrameCnt = 0;
-    frame->label = label;
-    frame->formals = formals;
-
-    for (; escapes != NULL && inRegCnt < FORMAL_REG_NUM; escapes = escapes->tail, formals = formals->tail)
-        if (!escapes->head) {
-            shiftOfView = T_Seq(shiftOfView, T_Move(T_Temp(formals->head->u.reg), T_Temp(formalRegs[inRegCnt])));
-            ++inRegCnt;
-        }
-    frame->shiftOfView = shiftOfView;
-
-    return frame;
+    frame->size = 0;
+    frame->name = name;
+    frame->formals = formalAccessList(0, escapes, frame);
 }
 
 F_accessList F_formals(F_frame frame) {
@@ -125,28 +267,22 @@ F_accessList F_formals(F_frame frame) {
 }
 
 F_access F_allocLocal(F_frame frame, bool escape) {
-    return escape ? F_InFrameAccess(-(++frame->inFrameCnt)) : F_InRegAccess(Temp_newtemp());
+    return escape ? F_InFrameAccess(-(++frame->size)) : F_InRegAccess(Temp_newtemp());
 }
 
 T_stm F_procEntryExit1(F_frame frame, T_stm body) {
-    Temp_temp calleeSavedRegs[] = {F_RBX(), F_RBP(), F_R12(), F_R13(), F_R14(), F_R15()};
-    Temp_temp tmps[] = {Temp_newtemp(), Temp_newtemp(), Temp_newtemp(), Temp_newtemp(), Temp_newtemp(), Temp_newtemp()};
+    Temp_tempList temps = Temp_TempList(Temp_newtemp(),
+                          Temp_TempList(Temp_newtemp(),
+                          Temp_TempList(Temp_newtemp(),
+                          Temp_TempList(Temp_newtemp(),
+                          Temp_TempList(Temp_newtemp(),
+                          Temp_TempList(Temp_newtemp(), NULL))))));
     
     return
-        T_Seq(frame->shiftOfView,
-        T_Seq(T_Move(T_Temp(tmps[0]), T_Temp(calleeSavedRegs[0])),
-        T_Seq(T_Move(T_Temp(tmps[1]), T_Temp(calleeSavedRegs[1])),
-        T_Seq(T_Move(T_Temp(tmps[2]), T_Temp(calleeSavedRegs[2])),
-        T_Seq(T_Move(T_Temp(tmps[3]), T_Temp(calleeSavedRegs[3])),
-        T_Seq(T_Move(T_Temp(tmps[4]), T_Temp(calleeSavedRegs[4])),
-        T_Seq(T_Move(T_Temp(tmps[5]), T_Temp(calleeSavedRegs[5])),
+        T_Seq(shiftOfView(frame->formals, F_argregs()),
+        T_Seq(saveCalleesaves(F_calleesaves(), temps),
         T_Seq(body,
-        T_Seq(T_Move(T_Temp(calleeSavedRegs[0]), T_Temp(tmps[0])),
-        T_Seq(T_Move(T_Temp(calleeSavedRegs[1]), T_Temp(tmps[1])),
-        T_Seq(T_Move(T_Temp(calleeSavedRegs[2]), T_Temp(tmps[2])),
-        T_Seq(T_Move(T_Temp(calleeSavedRegs[3]), T_Temp(tmps[3])),
-        T_Seq(T_Move(T_Temp(calleeSavedRegs[4]), T_Temp(tmps[4])),
-              T_Move(T_Temp(calleeSavedRegs[5]), T_Temp(tmps[5])))))))))))))));
+              restoreCalleesaves(F_calleesaves(), temps))));
 }
 
 T_exp F_simpleVar(F_access access, T_exp framePtr) {
@@ -157,7 +293,7 @@ T_exp F_simpleVar(F_access access, T_exp framePtr) {
 }
 
 T_exp F_staticLink(T_exp framePtr) {
-    return T_Mem(T_Binop(T_plus, framePtr, T_Const(F_wordSize)));
+    return T_Mem(T_Binop(T_minus, framePtr, T_Const(F_wordSize)));
 }
 
 F_frag F_string(Temp_label label, string str) {
@@ -165,11 +301,15 @@ F_frag F_string(Temp_label label, string str) {
 }
 
 Temp_label F_name(F_frame frame) {
-    return frame->label;
+    return frame->name;
 }
 
 T_exp F_externalCall(string name, T_expList args) {
     return T_Call(T_Name(Temp_namedlabel(name)), args);
+}
+
+AS_instrList F_procEntryExit2(AS_instrList body) {
+    return AS_splice(body, AS_InstrList(AS_Oper("", NULL, F_returnsinks(), NULL), NULL));
 }
 
 static Temp_temp fp = NULL;
@@ -185,90 +325,9 @@ static Temp_temp r12 = NULL;
 static Temp_temp r13 = NULL;
 static Temp_temp r14 = NULL;
 static Temp_temp r15 = NULL;
-
-static Temp_temp F_RDI(void) {
-    if (rdi == NULL)
-        rdi = Temp_newtemp();
-
-    return rdi;
-}
-
-static Temp_temp F_RSI(void) {
-    if (rsi == NULL)
-        rsi = Temp_newtemp();
-
-    return rsi;
-}
-
-static Temp_temp F_RDX(void) {
-    if (rdx == NULL)
-        rdx = Temp_newtemp();
-
-    return rdx;
-}
-
-static Temp_temp F_RCX(void) {
-    if (rcx == NULL)
-        rcx = Temp_newtemp();
-
-    return rcx;
-}
-
-static Temp_temp F_R8(void) {
-    if (r8 == NULL)
-        r8 = Temp_newtemp();
-
-    return r8;
-}
-
-static Temp_temp F_R9(void) {
-    if (r9 == NULL)
-        r9 = Temp_newtemp();
-
-    return r9;
-}
-
-static Temp_temp F_RBX(void) {
-    if (rbx == NULL)
-        rbx = Temp_newtemp();
-
-    return rbx;
-}
-
-static Temp_temp F_RBP(void) {
-    if (rbp == NULL)
-        rbp = Temp_newtemp();
-
-    return rbp;
-}
-
-static Temp_temp F_R12(void) {
-    if (r12 == NULL)
-        r12 = Temp_newtemp();
-
-    return r12;
-}
-
-static Temp_temp F_R13(void) {
-    if (r13 == NULL)
-        r13 = Temp_newtemp();
-
-    return r13;
-}
-
-static Temp_temp F_R14(void) {
-    if (r14 == NULL)
-        r14 = Temp_newtemp();
-
-    return r14;
-}
-
-static Temp_temp F_R15(void) {
-    if (r15 == NULL)
-        r15 = Temp_newtemp();
-
-    return r15;
-}
+static Temp_tempList callersaves = NULL;
+static Temp_tempList calleesaves = NULL;
+static Temp_tempList argregs = NULL;
 
 static F_access F_InFrameAccess(int offset) {
     F_access access = (F_access) checked_malloc(sizeof(*access));
@@ -297,12 +356,51 @@ static F_accessList F_AccessList(F_access head, F_accessList tail) {
     return accesses;
 }
 
-static F_accessList formalAccessList(int inFrameCnt, int inRegCnt, U_boolList escapes) {
+static F_accessList formalAccessList(int k, U_boolList escapes, F_frame frame) {
     if (escapes == NULL)
         return NULL;
-    
-    if (escapes->head || inRegCnt == FORMAL_REG_NUM)
-        return F_AccessList(F_InFrameAccess(inFrameCnt + 2), formalAccessList(inFrameCnt + 1, inRegCnt, escapes->tail));
-    else
-        return F_AccessList(F_InRegAccess(Temp_newtemp()), formalAccessList(inFrameCnt, inRegCnt + 1, escapes->tail));
+
+    return F_AccessList(k < F_argregsNum ?
+                            F_allocLocal(frame, escapes->head) :
+                            F_InFrameAccess(k - F_argregsNum + 1),
+                        formalAccessList(k + 1, escapes->tail, frame));
+}
+
+static T_stm shiftOfView(F_accessList formals, Temp_tempList regs) {
+    if (formals == NULL || regs == NULL)
+        return T_Exp(T_Const(0));
+
+    return T_Seq(
+        T_Move(
+            F_simpleVar(formals->head, F_FP()),
+            T_Temp(regs->head)
+        ),
+        shiftOfView(formals->tail, regs->tail)
+    );
+}
+
+static T_stm saveCalleesaves(Temp_tempList regs, Temp_tempList temps) {
+    if (regs == NULL)
+        return T_Exp(T_Const(0));
+
+    return T_Seq(
+        T_Move(
+            T_Temp(temps->head),
+            T_Temp(regs->head)
+        ),
+        saveCalleesaves(regs->tail, temps->tail)
+    );
+}
+
+static T_stm restoreCalleesaves(Temp_tempList regs, Temp_tempList temps) {
+    if (regs == NULL)
+        return T_Exp(T_Const(0));
+
+    return T_Seq(
+        T_Move(
+            T_Temp(regs->head),
+            T_Temp(temps->head)
+        ),
+        saveCalleesaves(regs->tail, temps->tail)
+    );
 }

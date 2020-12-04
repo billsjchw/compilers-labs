@@ -90,7 +90,7 @@ Tr_level Tr_outermost(void) {
 }
 
 Tr_level Tr_newLevel(Tr_level parent, Temp_label label, U_boolList escapes) {
-    F_frame frame = F_newFrame(label, escapes);
+    F_frame frame = F_newFrame(label, U_BoolList(TRUE, escapes));
     Tr_level level = checked_malloc(sizeof(*level));
 
     level->frame = frame;

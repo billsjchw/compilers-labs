@@ -5,6 +5,7 @@
 #define FRAME_H
 
 #include "tree.h"
+#include "assem.h"
 
 typedef struct F_frame_ *F_frame;
 
@@ -36,8 +37,29 @@ struct F_fragList_
 F_fragList F_FragList(F_frag, F_fragList);
 
 extern const int F_wordSize;
+extern const int F_argregsNum;
 
+Temp_temp F_RDI(void);
+Temp_temp F_RSI(void);
+Temp_temp F_RDX(void);
+Temp_temp F_RCX(void);
+Temp_temp F_RBX(void);
+Temp_temp F_RBP(void);
+Temp_temp F_RSP(void);
+Temp_temp F_RAX(void);
+Temp_temp F_R8(void);
+Temp_temp F_R9(void);
+Temp_temp F_R10(void);
+Temp_temp F_R11(void);
+Temp_temp F_R12(void);
+Temp_temp F_R13(void);
+Temp_temp F_R14(void);
+Temp_temp F_R15(void);
 Temp_temp F_FP(void);
+Temp_tempList F_callersaves(void);
+Temp_tempList F_calleesaves(void);
+Temp_tempList F_argregs(void);
+Temp_tempList F_returnsinks(void);
 F_frame F_newFrame(Temp_label, U_boolList);
 F_accessList F_formals(F_frame);
 F_access F_allocLocal(F_frame, bool);
@@ -47,5 +69,6 @@ T_exp F_staticLink(T_exp);
 F_frag F_string(Temp_label, string);
 Temp_label F_name(F_frame);
 T_exp F_externalCall(string, T_expList);
+AS_instrList F_procEntryExit2(AS_instrList);
 
 #endif
