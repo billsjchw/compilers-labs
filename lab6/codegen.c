@@ -29,6 +29,7 @@ AS_instrList F_codegen(F_frame frame, T_stmList stms) {
     assemFP = (string) checked_malloc(strlen(name) + 22);
     sprintf(assemFP, "ADDQ %s_frameSize, `d0\n", name);
 
+    insts = last = NULL;
     for (; stms != NULL; stms = stms->tail)
         munchStm(stms->head);
 

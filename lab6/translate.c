@@ -112,7 +112,7 @@ Tr_access Tr_allocLocal(Tr_level level, bool escape) {
 }
 
 void Tr_procEntryExit(Tr_level level, Tr_exp body) {
-    T_stm stm = F_procEntryExit1(level->frame, unNx(body));
+    T_stm stm = F_procEntryExit1(level->frame, T_Move(T_Temp(F_RAX()), unEx(body)));
     
     frags = F_FragList(F_ProcFrag(stm, level->frame), frags);
 }
@@ -272,7 +272,7 @@ Tr_exp Tr_forExp(Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done) {
         T_Seq(T_Label(start),
         T_Seq(unNx(body),
         T_Seq(T_Move(T_Temp(cnt), T_Binop(T_plus, T_Temp(cnt), T_Const(1))),
-        T_Seq(T_Cjump(T_le, T_Temp(cnt), T_Temp(limit), start, done),
+        T_Seq(T_Cjump(T_lt, T_Temp(cnt), T_Temp(limit), start, done),
               T_Label(done))))))))
     );
 }

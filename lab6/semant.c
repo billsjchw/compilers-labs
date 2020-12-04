@@ -37,7 +37,6 @@ static Tr_expList transDecList(S_table, S_table, A_decList, Tr_level, Temp_label
 static Ty_fieldList transFieldList(S_table, A_fieldList);
 static Ty_tyList fieldListToTyList(Ty_fieldList);
 static U_boolList fieldListToEscapeList(A_fieldList);
-static Tr_accessList allocFormals(S_table, Ty_fieldList, U_boolList, Tr_level);
 
 F_fragList SEM_transProg(A_exp exp) {
     S_table venv = E_base_venv();
@@ -457,16 +456,4 @@ static U_boolList fieldListToEscapeList(A_fieldList fields) {
         return NULL;
 
     return U_BoolList(fields->head->escape, fieldListToEscapeList(fields->tail));
-}
-
-static Tr_accessList allocFormals(S_table venv, Ty_fieldList fields,
-                                  U_boolList escapes, Tr_level level) {
-    Tr_access access = NULL;
-    
-    if (fields == NULL)
-        return NULL;
-
-    access = Tr_allocLocal(level, escapes->head);
-    
-    return Tr_AccessList(access, allocFormals(venv, fields->tail, escapes->tail, level));
 }
