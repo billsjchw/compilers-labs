@@ -14,6 +14,8 @@
 #include "errormsg.h"
 #include "table.h"
 
+static void sort(Temp_tempList);
+
 Temp_tempList FG_def(G_node n) {
 	AS_instr inst = (AS_instr) G_nodeInfo(n);
 
@@ -55,8 +57,13 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 	G_nodeList nodes = NULL;
 	G_nodeList p = NULL;
 
-	for (; insts != NULL; insts = insts->tail)
+	for (; insts != NULL; insts = insts->tail) {
+		if (insts->head->kind == I_OPER) {
+			sort(insts->head->u.OPER.src);
+			sort(insts->head->u.OPER.dst);
+		}
 		G_Node(graph, insts->head);
+	}
 
 	nodes = G_nodes(graph);
 	for (p = nodes; p != NULL; p = p->tail) {
@@ -80,4 +87,17 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 	}
 
 	return graph;
+}
+
+static void sort(Temp_tempList temps) {
+	Temp_tempList p = NULL;
+	Temp_tempList q = NULL;
+	
+	for (p = temps; p != NULL; p = p->tail)
+		for (q = p->tail; q != NULL; q = q->tail)
+			if (q->head < p->head) {
+				Temp_temp temp = p->head;
+				p->head = q->head;
+				q->head = temp;
+			}
 }
