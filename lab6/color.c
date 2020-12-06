@@ -69,6 +69,10 @@ struct COL_result COL_color(G_graph ig, Temp_map initial, Temp_tempList regs) {
 	return ret;
 }
 
+static int tempListLen(Temp_tempList temps) {
+	return temps == NULL ? 0 : 1 + tempListLen(temps->tail);
+}
+
 static bool inTempList(Temp_temp temp, Temp_tempList temps) {
 	return temps == NULL ? FALSE : temp == temps->head || inTempList(temp, temps->tail);
 }
