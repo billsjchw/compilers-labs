@@ -13,8 +13,14 @@
 #include "table.h"
 #include "flowgraph.h"
 
-struct RA_result RA_regAlloc(F_frame f, AS_instrList il) {
-	//your code here
-	struct RA_result ret;
+struct RA_result RA_regAlloc(F_frame frame, AS_instrList insts) {
+	struct RA_result ret = {NULL, NULL};
+	G_graph flow = FG_AssemFlowGraph(insts);
+	struct Live_graph lg = Live_liveness(flow);
+	struct COL_result cr = COL_color(lg.graph, F_tempMap(), F_registers());
+
+	ret.coloring = cr.coloring;
+	ret.il = insts;
+
 	return ret;
 }
