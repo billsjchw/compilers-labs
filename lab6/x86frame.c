@@ -47,6 +47,8 @@ static Temp_temp r12;
 static Temp_temp r13;
 static Temp_temp r14;
 static Temp_temp r15;
+static Temp_map tempMap;
+static Temp_tempList registers;
 static Temp_tempList callersaves;
 static Temp_tempList calleesaves;
 static Temp_tempList argregs;
@@ -211,6 +213,50 @@ Temp_temp F_R15(void) {
     return r15;
 }
 
+Temp_map F_tempMap(void) {
+    if (tempMap == NULL) {
+        tempMap = Temp_empty();
+        Temp_enter(tempMap, F_RDI(), "%%rdi");
+        Temp_enter(tempMap, F_RSI(), "%%rsi");
+        Temp_enter(tempMap, F_RDX(), "%%rdx");
+        Temp_enter(tempMap, F_RCX(), "%%rcx");
+        Temp_enter(tempMap, F_RBX(), "%%rbx");
+        Temp_enter(tempMap, F_RBP(), "%%rbp");
+        Temp_enter(tempMap, F_RSP(), "%%rsp");
+        Temp_enter(tempMap, F_RAX(), "%%rax");
+        Temp_enter(tempMap, F_R8(), "%%r8");
+        Temp_enter(tempMap, F_R9(), "%%r9");
+        Temp_enter(tempMap, F_R10(), "%%r10");
+        Temp_enter(tempMap, F_R11(), "%%r11");
+        Temp_enter(tempMap, F_R12(), "%%r12");
+        Temp_enter(tempMap, F_R13(), "%%r13");
+        Temp_enter(tempMap, F_R14(), "%%r14");
+        Temp_enter(tempMap, F_R15(), "%%r15");
+    }
+    return tempMap;
+}
+
+Temp_tempList F_registers(void) {
+    if (registers == NULL)
+        registers = Temp_TempList(F_RDI(),
+                    Temp_TempList(F_RSI(),
+                    Temp_TempList(F_RDX(),
+                    Temp_TempList(F_RCX(),
+                    Temp_TempList(F_RBX(),
+                    Temp_TempList(F_RBP(),
+                    Temp_TempList(F_RSP(),
+                    Temp_TempList(F_RAX(),
+                    Temp_TempList(F_R8(),
+                    Temp_TempList(F_R9(),
+                    Temp_TempList(F_R10(),
+                    Temp_TempList(F_R11(),
+                    Temp_TempList(F_R12(),
+                    Temp_TempList(F_R13(),
+                    Temp_TempList(F_R14(),
+                    Temp_TempList(F_R15(), NULL))))))))))))))));
+    return registers;
+}
+
 Temp_tempList F_callersaves(void) {
     if (callersaves == NULL)
         callersaves = Temp_TempList(F_RAX(),
@@ -325,6 +371,8 @@ static Temp_temp r12 = NULL;
 static Temp_temp r13 = NULL;
 static Temp_temp r14 = NULL;
 static Temp_temp r15 = NULL;
+static Temp_map tempMap = NULL;
+static Temp_tempList registers = NULL;
 static Temp_tempList callersaves = NULL;
 static Temp_tempList calleesaves = NULL;
 static Temp_tempList argregs = NULL;

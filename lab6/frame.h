@@ -39,6 +39,7 @@ F_fragList F_FragList(F_frag, F_fragList);
 extern const int F_wordSize;
 extern const int F_argregsNum;
 
+Temp_temp F_FP(void);
 Temp_temp F_RDI(void);
 Temp_temp F_RSI(void);
 Temp_temp F_RDX(void);
@@ -55,7 +56,8 @@ Temp_temp F_R12(void);
 Temp_temp F_R13(void);
 Temp_temp F_R14(void);
 Temp_temp F_R15(void);
-Temp_temp F_FP(void);
+Temp_map F_tempMap(void);
+Temp_tempList F_registers(void);
 Temp_tempList F_callersaves(void);
 Temp_tempList F_calleesaves(void);
 Temp_tempList F_argregs(void);
