@@ -9,8 +9,6 @@
 #include "frame.h"
 #include "assem.h"
 
-#define FORMAL_REG_NUM 6
-
 /*Lab5: Your implementation here.*/
 
 //varibales

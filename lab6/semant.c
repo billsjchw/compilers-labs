@@ -42,7 +42,7 @@ F_fragList SEM_transProg(A_exp exp) {
     S_table venv = E_base_venv();
     S_table tenv = E_base_tenv();
 
-    Temp_label label = Temp_newlabel();
+    Temp_label label = Temp_namedlabel("tigermain");
     Tr_level level = Tr_newLevel(Tr_outermost(), label, NULL);
 	struct expty et = transExp(venv, tenv, exp, level, NULL);
     Tr_procEntryExit(level, et.exp);
