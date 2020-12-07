@@ -58,60 +58,68 @@ S_table E_base_tenv(void)
 
 S_table E_base_venv(void)
 {
-	S_table venv;
+	S_table ret = S_empty();
 
-	Ty_ty result;
-	Ty_tyList formals;
-	
-	Temp_label label = NULL;
-	Tr_level level;
-	
-	level = Tr_outermost();
-	venv = S_empty();
+	S_enter(ret, S_Symbol("print"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("print"),
+		Ty_TyList(Ty_String(), NULL),
+		Ty_Void()
+	));
+	S_enter(ret, S_Symbol("flush"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("flush"),
+		NULL,
+		Ty_Void()
+	));
+	S_enter(ret, S_Symbol("getchar"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("getchar"),
+		NULL,
+		Ty_String()
+	));
+	S_enter(ret, S_Symbol("ord"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("ord"),
+		Ty_TyList(Ty_String(), NULL),
+		Ty_Int()
+	));
+	S_enter(ret, S_Symbol("chr"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("chr"),
+		Ty_TyList(Ty_Int(), NULL),
+		Ty_String()
+	));
+	S_enter(ret, S_Symbol("size"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("size"),
+		Ty_TyList(Ty_String(), NULL),
+		Ty_Int()
+	));
+	S_enter(ret, S_Symbol("substring"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("subtring"),
+		Ty_TyList(Ty_String(), Ty_TyList(Ty_Int(), Ty_TyList(Ty_Int(), NULL))),
+		Ty_String()
+	));
+	S_enter(ret, S_Symbol("concat"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("concat"),
+		Ty_TyList(Ty_String(), Ty_TyList(Ty_String(), NULL)),
+		Ty_String()
+	));
+	S_enter(ret, S_Symbol("not"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("not"),
+		Ty_TyList(Ty_Int(), NULL),
+		Ty_Int()
+	));
+	S_enter(ret, S_Symbol("exit"), E_FunEntry(
+		Tr_outermost(),
+		Temp_namedlabel("exit"),
+		Ty_TyList(Ty_Int(), NULL),
+		Ty_Void()
+	));
 
-	S_enter(venv,S_Symbol("flush"),E_FunEntry(level,label,NULL,NULL));
-	
-	result = Ty_Int();
-
-	formals = checked_malloc(sizeof(*formals));
-	formals->head = Ty_Int();
-	formals->tail = NULL;
-	S_enter(venv,S_Symbol("exit"),E_FunEntry(level,label,formals,NULL));
-
-	S_enter(venv,S_Symbol("not"),E_FunEntry(level,label,formals,result));
-
-	result = Ty_String();
-	
-	S_enter(venv,S_Symbol("chr"),E_FunEntry(level,label,formals,result));
-
-	S_enter(venv,S_Symbol("getchar"),E_FunEntry(level,label,NULL,result));
-
-	formals = checked_malloc(sizeof(*formals));
-	formals->head = Ty_String();
-	formals->tail = NULL;
-
-	S_enter(venv,S_Symbol("print"),E_FunEntry(level,label,formals,NULL));
-
-	result = Ty_Int();
-	S_enter(venv,S_Symbol("ord"),E_FunEntry(level,label,formals,result));
-
-	S_enter(venv,S_Symbol("size"),E_FunEntry(level,label,formals,result));
-
-	result = Ty_String();
-	formals = checked_malloc(sizeof(*formals));
-	formals->head = Ty_String();
-	formals->tail = checked_malloc(sizeof(*formals));
-	formals->tail->head = Ty_String();
-	S_enter(venv,S_Symbol("concat"),E_FunEntry(level,label,formals,result));
-
-	formals = checked_malloc(sizeof(*formals));
-	formals->head = Ty_String();
-	formals->tail = checked_malloc(sizeof(*formals));
-	formals->tail->head = Ty_Int();
-	formals->tail->tail = checked_malloc(sizeof(*formals));
-	formals->tail->tail->head = Ty_Int();
-	S_enter(venv,S_Symbol("substring"),E_FunEntry(level,label,formals,result));
-
-
-	return venv;
+	return ret;
 }
