@@ -72,5 +72,6 @@ F_frag F_string(Temp_label, string);
 Temp_label F_name(F_frame);
 T_exp F_externalCall(string, T_expList);
 AS_instrList F_procEntryExit2(AS_instrList);
+AS_proc F_procEntryExit3(F_frame, AS_instrList);
 
 #endif

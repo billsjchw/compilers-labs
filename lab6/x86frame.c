@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "util.h"
 #include "symbol.h"
 #include "temp.h"
@@ -356,6 +355,22 @@ T_exp F_externalCall(string name, T_expList args) {
 
 AS_instrList F_procEntryExit2(AS_instrList body) {
     return AS_splice(body, AS_InstrList(AS_Oper("", NULL, F_returnsinks(), NULL), NULL));
+}
+
+AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
+    string labstr = Temp_labelstring(frame->name);
+    string prolog = (string) checked_malloc(5 * strlen(labstr) + 110);
+    string epilog = "";
+    string prologFormat = ".text\n"
+                          ".globl %s\n"
+                          ".type %s, @function\n"
+                          ".set %s_frameSize, %d\n"
+                          "%s:\n"
+                          "SUBQ %s_frameSize, %%rsp\n";
+
+    sprintf(prolog, prologFormat, labstr, labstr, labstr, frame->size * F_wordSize, labstr, labstr);
+
+    return AS_Proc(prolog, body, epilog);
 }
 
 static Temp_temp fp = NULL;
