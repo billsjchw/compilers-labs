@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "util.h"
 #include "symbol.h"
 #include "types.h"
@@ -92,21 +93,17 @@ static void doProc(FILE *out, F_frame frame, T_stm body)
  //fprintf(out, "END %s\n\n", Temp_labelstring(F_name(frame)));
 }
 
-void doStr(FILE *out, Temp_label label, string str) {
-	fprintf(out, ".section .rodata\n");
+void doStr(FILE *out, Temp_label label, string str) {	
+  int length = (int) strlen(str);
+  char *p = NULL;
+  
+  fprintf(out, ".section .rodata\n");
 	fprintf(out, ".%s:\n", S_name(label));
-
-	int length = *(int *)str;
-	length = length + 4;
-	//it may contains zeros in the middle of string. To keep this work, we need to print all the charactors instead of using fprintf(str)
-	fprintf(out, ".string \"");
-	int i = 0;
-	for (; i < length; i++) {
-		fprintf(out, "%c", str[i]);
-	}
+  fprintf(out, ".long %d\n", length);
+	fprintf(out, ".ascii \"");
+  for (p = str; *p; ++p)
+    fprintf(out, "\\%o", *p);
 	fprintf(out, "\"\n");
-
-	//fprintf(out, ".string \"%s\"\n", str);
 }
 
 int main(int argc, string *argv)

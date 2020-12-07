@@ -462,6 +462,6 @@ static T_stm restoreCalleesaves(Temp_tempList regs, Temp_tempList temps) {
             T_Temp(regs->head),
             T_Temp(temps->head)
         ),
-        saveCalleesaves(regs->tail, temps->tail)
+        restoreCalleesaves(regs->tail, temps->tail)
     );
 }
