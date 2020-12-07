@@ -254,9 +254,10 @@ Tr_exp Tr_whileExp(Tr_exp test, Tr_exp body, Temp_label done) {
     return Tr_Nx(
         T_Seq(T_Label(start),
         T_Seq(cx.stm,
+        T_Seq(T_Label(exec),
         T_Seq(unNx(body),
         T_Seq(T_Jump(T_Name(start), Temp_LabelList(start, NULL)),
-              T_Label(done)))))
+              T_Label(done))))))
     );
 }
 

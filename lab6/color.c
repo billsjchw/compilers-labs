@@ -66,8 +66,10 @@ struct COL_result COL_color(G_graph ig, Temp_map initial, Temp_tempList regs) {
 			}
 		}
 		for (q = regs; q != NULL; q = q->tail)
-			if (!inTempList(q->head, neighbourColors))
+			if (!inTempList(q->head, neighbourColors)) {
 				colorSelected = q->head;
+				break;
+			}
 		if (colorSelected == NULL) {
 			ret.spills = Temp_TempList(tempToBeColored, ret.spills);
 		} else {

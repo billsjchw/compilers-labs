@@ -61,21 +61,24 @@ struct Live_graph Live_liveness(G_graph flow) {
 	for (; nodes != NULL; nodes = nodes->tail) {
 		Temp_tempList p = NULL;
 		for (p = FG_def(nodes->head); p != NULL; p = p->tail) {
+			G_node u = (G_node) TAB_look(nodeMap, p->head);
 			Temp_tempList q = NULL;
+			if (u == NULL) {
+				u = G_Node(lg.graph, p->head);
+				TAB_enter(nodeMap, p->head, u);
+			}
 			for (q = (Temp_tempList) G_look(liveMap, nodes->head); q != NULL; q = q->tail)
 				if (!FG_isMove(nodes->head) || q->head != FG_use(nodes->head)->head) {
-					G_node u = (G_node) TAB_look(nodeMap, p->head);
 					G_node v = (G_node) TAB_look(nodeMap, q->head);
-					if (u == NULL) {
-						u = G_Node(lg.graph, p->head);
-						TAB_enter(nodeMap, p->head, u);
-					}
 					if (v == NULL) {
 						v = G_Node(lg.graph, q->head);
 						TAB_enter(nodeMap, q->head, v);
 					}
-					G_addEdge(u, v);
-					G_addEdge(v, u);
+					assert(p->head != q->head || u == v);
+					if (u != v) {
+						G_addEdge(u, v);
+						G_addEdge(v, u);
+					}
 				}
 		}
 		if (FG_isMove(nodes->head)) {

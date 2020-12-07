@@ -137,8 +137,15 @@ static void munchStm(T_stm stm) {
         break;
     }
     case T_JUMP: {
-        Temp_temp temp = munchExp(stm->u.JUMP.exp);
-        emit(AS_Oper("JMP *`s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
+        if (stm->u.JUMP.exp->kind == T_NAME) {
+            string labstr = Temp_labelstring(stm->u.JUMP.exp->u.NAME);
+            string assem = (string) checked_malloc(strlen(labstr) + 10);
+            sprintf(assem, "JMP %s", labstr);
+            emit(AS_Oper(assem, NULL, NULL, AS_Targets(stm->u.JUMP.jumps)));
+        } else {
+            Temp_temp temp = munchExp(stm->u.JUMP.exp);
+            emit(AS_Oper("JMP *`s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
+        }
         break;
     }
     case T_CJUMP: {
@@ -164,12 +171,17 @@ static void munchStm(T_stm stm) {
         break;
     }
     case T_MOVE: {
-        Temp_temp src = munchExp(stm->u.MOVE.src);
-        if (stm->u.MOVE.dst->kind == T_MEM) {
-            Temp_temp addr = munchExp(stm->u.MOVE.dst->u.MEM);
-            emit(AS_Oper("MOVQ `s0, (`s1)", NULL, Temp_TempList(src, Temp_TempList(addr, NULL)), NULL));
+        if (stm->u.MOVE.src->kind == T_TEMP && stm->u.MOVE.dst->kind == T_TEMP) {
+            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL),
+                         Temp_TempList(stm->u.MOVE.src->u.TEMP, NULL)));
         } else {
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL), Temp_TempList(src, NULL)));
+            Temp_temp src = munchExp(stm->u.MOVE.src);
+            if (stm->u.MOVE.dst->kind == T_MEM) {
+                Temp_temp addr = munchExp(stm->u.MOVE.dst->u.MEM);
+                emit(AS_Oper("MOVQ `s0, (`s1)", NULL, Temp_TempList(src, Temp_TempList(addr, NULL)), NULL));
+            } else {
+                emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL), Temp_TempList(src, NULL)));
+            }
         }
         break;
     }
