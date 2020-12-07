@@ -14,14 +14,15 @@
 #include "errormsg.h"
 #include "table.h"
 
-static void sort(Temp_tempList);
+static Temp_tempList sorted(Temp_tempList);
+static Temp_tempList clone(Temp_tempList);
 
 Temp_tempList FG_def(G_node n) {
 	AS_instr inst = (AS_instr) G_nodeInfo(n);
 
 	switch (inst->kind) {
 	case I_OPER:
-		return inst->u.OPER.dst;
+		return sorted(inst->u.OPER.dst);
 	case I_MOVE:
 		return inst->u.MOVE.dst;
 	case I_LABEL:
@@ -36,7 +37,7 @@ Temp_tempList FG_use(G_node n) {
 
 	switch (inst->kind) {
 	case I_OPER:
-		return inst->u.OPER.src;
+		return sorted(inst->u.OPER.src);
 	case I_MOVE:
 		return inst->u.MOVE.src;
 	case I_LABEL:
@@ -57,13 +58,8 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 	G_nodeList nodes = NULL;
 	G_nodeList p = NULL;
 
-	for (; insts != NULL; insts = insts->tail) {
-		if (insts->head->kind == I_OPER) {
-			sort(insts->head->u.OPER.src);
-			sort(insts->head->u.OPER.dst);
-		}
+	for (; insts != NULL; insts = insts->tail)
 		G_Node(graph, insts->head);
-	}
 
 	nodes = G_nodes(graph);
 	for (p = nodes; p != NULL; p = p->tail) {
@@ -90,15 +86,22 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 	return graph;
 }
 
-static void sort(Temp_tempList temps) {
+static Temp_tempList sorted(Temp_tempList temps) {
 	Temp_tempList p = NULL;
 	Temp_tempList q = NULL;
+	Temp_tempList ret = clone(temps);
 	
-	for (p = temps; p != NULL; p = p->tail)
+	for (p = ret; p != NULL; p = p->tail)
 		for (q = p->tail; q != NULL; q = q->tail)
 			if (q->head < p->head) {
 				Temp_temp temp = p->head;
 				p->head = q->head;
 				q->head = temp;
 			}
+
+	return ret;
+}
+
+static Temp_tempList clone(Temp_tempList temps) {
+	return temps == NULL ? NULL : Temp_TempList(temps->head, clone(temps->tail));
 }

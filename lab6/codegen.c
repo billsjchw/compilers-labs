@@ -97,11 +97,18 @@ static Temp_temp munchExp(T_exp exp) {
         break;
     }
     case T_CALL: {
-        Temp_temp addr = munchExp(exp->u.CALL.fun);
         Temp_tempList args = munchExpList(exp->u.CALL.args);
         Temp_tempList regs = prepareArgs(args, F_argregs());
         int argsNum = expListLen(exp->u.CALL.args);
-        emit(AS_Oper("CALL `s0", F_callersaves(), Temp_TempList(addr, Temp_TempList(F_RSP(), NULL)), NULL));
+        if (exp->u.CALL.fun->kind == T_NAME) {
+            string labstr = Temp_labelstring(exp->u.CALL.fun->u.NAME);
+            string assem = (string) checked_malloc(strlen(labstr) + 10);
+            sprintf(assem, "CALL %s", labstr);
+            emit(AS_Oper(assem, F_callersaves(), Temp_TempList(F_RSP(), NULL), NULL));
+        } else {
+            Temp_temp addr = munchExp(exp->u.CALL.fun);
+            emit(AS_Oper("CALL *`s0", F_callersaves(), Temp_TempList(addr, Temp_TempList(F_RSP(), NULL)), NULL));
+        }
         emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
         if (argsNum > F_argregsNum) {
             string assem = (string) checked_malloc(24);
@@ -131,7 +138,7 @@ static void munchStm(T_stm stm) {
     }
     case T_JUMP: {
         Temp_temp temp = munchExp(stm->u.JUMP.exp);
-        emit(AS_Oper("JMP `s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
+        emit(AS_Oper("JMP *`s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
         break;
     }
     case T_CJUMP: {
@@ -196,7 +203,7 @@ static void emit(AS_instr inst) {
 static Temp_tempList prepareArgs(Temp_tempList args, Temp_tempList regs) {
     Temp_tempList temps = NULL;
     
-    if (temps == NULL)
+    if (args == NULL)
         return NULL;
 
     temps = prepareArgs(args->tail, regs == NULL ? NULL : regs->tail);
