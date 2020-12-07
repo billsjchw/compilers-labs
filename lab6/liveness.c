@@ -35,6 +35,7 @@ struct Live_graph Live_liveness(G_graph flow) {
 	bool change = TRUE;
 
 	while (change) {
+		change = FALSE;
 		G_nodeList p = NULL;
 		for (p = nodes; p != NULL; p = p->tail) {
 			G_nodeList q = NULL;
@@ -119,7 +120,7 @@ static Temp_tempList setDiff(Temp_tempList left, Temp_tempList right) {
 	if (left->head < right->head)
 		return Temp_TempList(left->head, setDiff(left->tail, right));
 	if (left->head == right->head)
-		return Temp_TempList(left->tail, right->tail);
+		return setDiff(left->tail, right->tail);
 	return setDiff(left, right->tail);
 }
 

@@ -26,7 +26,7 @@ struct COL_result COL_color(G_graph ig, Temp_map initial, Temp_tempList regs) {
 	G_nodeList p = NULL;
 
 	for (p = nodes; p != NULL; p = p->tail) {
-		int *degree = (int *) malloc(sizeof(int));
+		int *degree = (int *) checked_malloc(sizeof(int));
 		*degree = G_degree(p->head) / 2;
 		TAB_enter(degreeMap, p->head, degree);
 	}

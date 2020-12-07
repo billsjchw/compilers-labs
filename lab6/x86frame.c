@@ -216,22 +216,22 @@ Temp_temp F_R15(void) {
 Temp_map F_tempMap(void) {
     if (tempMap == NULL) {
         tempMap = Temp_empty();
-        Temp_enter(tempMap, F_RDI(), "%%rdi");
-        Temp_enter(tempMap, F_RSI(), "%%rsi");
-        Temp_enter(tempMap, F_RDX(), "%%rdx");
-        Temp_enter(tempMap, F_RCX(), "%%rcx");
-        Temp_enter(tempMap, F_RBX(), "%%rbx");
-        Temp_enter(tempMap, F_RBP(), "%%rbp");
-        Temp_enter(tempMap, F_RSP(), "%%rsp");
-        Temp_enter(tempMap, F_RAX(), "%%rax");
-        Temp_enter(tempMap, F_R8(), "%%r8");
-        Temp_enter(tempMap, F_R9(), "%%r9");
-        Temp_enter(tempMap, F_R10(), "%%r10");
-        Temp_enter(tempMap, F_R11(), "%%r11");
-        Temp_enter(tempMap, F_R12(), "%%r12");
-        Temp_enter(tempMap, F_R13(), "%%r13");
-        Temp_enter(tempMap, F_R14(), "%%r14");
-        Temp_enter(tempMap, F_R15(), "%%r15");
+        Temp_enter(tempMap, F_RDI(), "%rdi");
+        Temp_enter(tempMap, F_RSI(), "%rsi");
+        Temp_enter(tempMap, F_RDX(), "%rdx");
+        Temp_enter(tempMap, F_RCX(), "%rcx");
+        Temp_enter(tempMap, F_RBX(), "%rbx");
+        Temp_enter(tempMap, F_RBP(), "%rbp");
+        Temp_enter(tempMap, F_RSP(), "%rsp");
+        Temp_enter(tempMap, F_RAX(), "%rax");
+        Temp_enter(tempMap, F_R8(), "%r8");
+        Temp_enter(tempMap, F_R9(), "%r9");
+        Temp_enter(tempMap, F_R10(), "%r10");
+        Temp_enter(tempMap, F_R11(), "%r11");
+        Temp_enter(tempMap, F_R12(), "%r12");
+        Temp_enter(tempMap, F_R13(), "%r13");
+        Temp_enter(tempMap, F_R14(), "%r14");
+        Temp_enter(tempMap, F_R15(), "%r15");
     }
     return tempMap;
 }
@@ -420,7 +420,7 @@ static T_stm shiftOfView(F_accessList formals, Temp_tempList regs) {
 
     return T_Seq(
         T_Move(
-            F_simpleVar(formals->head, F_FP()),
+            F_simpleVar(formals->head, T_Temp(F_FP())),
             T_Temp(regs->head)
         ),
         shiftOfView(formals->tail, regs->tail)

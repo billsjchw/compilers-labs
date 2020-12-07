@@ -68,11 +68,12 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 	nodes = G_nodes(graph);
 	for (p = nodes; p != NULL; p = p->tail) {
 		AS_instr inst = (AS_instr) G_nodeInfo(p->head);
-		Temp_labelList labels = inst->kind == I_OPER ? inst->u.OPER.jumps : NULL;
-		if (labels == NULL) {
+		AS_targets targets = inst->kind == I_OPER ? inst->u.OPER.jumps : NULL;
+		if (targets == NULL) {
 			if (p->tail != NULL)
-				G_addEdge(p, p->tail->head);
+				G_addEdge(p->head, p->tail->head);
 		} else {
+			Temp_labelList labels = targets->labels;
 			G_nodeList q = NULL;
 			for (q = nodes; q != NULL; q = q->tail) {
 				AS_instr inst = (AS_instr) G_nodeInfo(p->head);
