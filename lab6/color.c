@@ -22,27 +22,38 @@ struct COL_result COL_color(G_graph ig, Temp_map initial, Temp_tempList regs) {
 	G_nodeList stack = NULL;
 	int regsNum = tempListLen(regs);
 	TAB_table colorMap = TAB_empty();
+	TAB_table degreeMap = TAB_empty();
+	G_nodeList p = NULL;
+
+	for (p = nodes; p != NULL; p = p->tail) {
+		int *degree = (int *) malloc(sizeof(int));
+		*degree = G_degree(p->head) / 2;
+		TAB_enter(degreeMap, p->head, degree);
+	}
 
 	while (TRUE) {
 		G_node nodeSelected = NULL;
-		G_nodeList p = NULL;
 		for (p = nodes; p != NULL; p = p->tail) {
 			if (Temp_look(initial, Live_gtemp(p->head)) == NULL && !G_inNodeList(p->head, stack)) {
+				int *degree = (int *) TAB_look(degreeMap, p->head);
 				nodeSelected = p->head;
-				if (G_degree(p) / 2 < regsNum)
+				if (*degree < regsNum)
 					break;
 			}
 		}
 		if (nodeSelected == NULL)
 			break;
 		stack = G_NodeList(nodeSelected, stack);
+		for (p = G_succ(nodeSelected); p != NULL; p = p->tail) {
+			int *degree = (int *) TAB_look(degreeMap, p->head);
+			--(*degree);
+		}
 	}
 
 	while (stack != NULL) {
 		Temp_temp tempToBeColored = Live_gtemp(stack->head);
 		Temp_temp colorSelected = NULL;
 		Temp_tempList neighbourColors = NULL;
-		G_nodeList p = NULL;
 		Temp_tempList q = NULL;
 		for (p = G_succ(stack->head); p != NULL; p = p->tail) {
 			Temp_temp temp = Live_gtemp(p->head);
