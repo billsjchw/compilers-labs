@@ -163,3 +163,37 @@ AS_proc AS_Proc(string p, AS_instrList b, string e)
  proc->prolog=p; proc->body=b; proc->epilog=e;
  return proc;
 }
+
+void AS_rewrite(AS_instrList insts, Temp_map map) {
+  AS_instrList ret = insts;
+  AS_instrList *last = &ret;
+  AS_instrList p = NULL;
+
+  for (p = insts; p != NULL;) {
+    if (p->head->kind == I_MOVE) {
+      string srcStr = Temp_look(map, p->head->u.MOVE.src->head);
+      string dstStr = Temp_look(map, p->head->u.MOVE.dst->head);
+      if (strcmp(srcStr, dstStr) == 0) {
+        *last = p->tail;
+        p = p->tail;
+        continue;
+      }
+    } else if (p->head->kind == I_OPER && p->tail != NULL && p->tail->head->kind == I_LABEL) {
+      AS_targets targets = p->head->u.OPER.jumps;
+      if (targets != NULL && targets->labels->tail == NULL) {
+        Temp_label label = targets->labels->head;
+        if (label == p->tail->head->u.LABEL.label) {
+          *last = p->tail;
+          p = p->tail;
+          continue;
+        }
+      }
+    } else if (p->head->kind == I_OPER && p->head->u.OPER.assem[0] == '\0') {
+      *last = p->tail;
+      p = p->tail;
+      continue;
+    }
+    last = &p->tail;
+    p = p->tail;
+  }
+}

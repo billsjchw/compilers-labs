@@ -75,7 +75,7 @@ static void doProc(FILE *out, F_frame frame, T_stm body)
 
  //Part of TA's implementation. Just for reference.
 
-//  AS_rewrite(ra.il, Temp_layerMap(F_tempMap, ra.coloring));
+ AS_rewrite(ra.il, Temp_layerMap(F_tempMap(), ra.coloring));
  proc =	F_procEntryExit3(frame, ra.il);
 
 //  string procName = S_name(F_name(frame));
