@@ -72,7 +72,7 @@ G_graph FG_AssemFlowGraph(AS_instrList insts) {
 			Temp_labelList labels = targets->labels;
 			G_nodeList q = NULL;
 			for (q = nodes; q != NULL; q = q->tail) {
-				AS_instr inst = (AS_instr) G_nodeInfo(p->head);
+				AS_instr inst = (AS_instr) G_nodeInfo(q->head);
 				if (inst->kind == I_LABEL && inst->u.LABEL.label) {
 					Temp_labelList r = NULL;
 					for (r = labels; r != NULL; r = r->tail)

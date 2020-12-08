@@ -154,7 +154,7 @@ static void munchStm(T_stm stm) {
         string labstr = Temp_labelstring(stm->u.CJUMP.true);
         string jmpInstStr = NULL;
         string assem = NULL;
-        emit(AS_Oper("CMP `s0, `s1", NULL, Temp_TempList(left, Temp_TempList(right, NULL)), NULL));
+        emit(AS_Oper("CMP `s0, `s1", NULL, Temp_TempList(right, Temp_TempList(left, NULL)), NULL));
         switch (stm->u.CJUMP.op) {
         case T_lt: jmpInstStr = "JL"; break;
         case T_gt: jmpInstStr = "JG"; break;

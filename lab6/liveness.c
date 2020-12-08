@@ -74,7 +74,6 @@ struct Live_graph Live_liveness(G_graph flow) {
 						v = G_Node(lg.graph, q->head);
 						TAB_enter(nodeMap, q->head, v);
 					}
-					assert(p->head != q->head || u == v);
 					if (u != v) {
 						G_addEdge(u, v);
 						G_addEdge(v, u);

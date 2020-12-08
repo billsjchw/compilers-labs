@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "util.h"
 #include "table.h"
@@ -207,8 +208,11 @@ Tr_exp Tr_intOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
 }
 
 Tr_exp Tr_stringOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
+    if (oper != A_eqOp)
+        exit(1);
+
     return Tr_Ex(F_externalCall(
-        "stringCompare",
+        "stringEqual",
         T_ExpList(T_Const(oper), T_ExpList(unEx(left), T_ExpList(unEx(right), NULL)))
     ));
 }
