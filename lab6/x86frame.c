@@ -357,16 +357,18 @@ AS_instrList F_procEntryExit2(AS_instrList body) {
 
 AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
     string labstr = Temp_labelstring(frame->name);
-    string prolog = (string) checked_malloc(5 * strlen(labstr) + 110);
-    string epilog = "";
+    string prolog = (string) checked_malloc(5 * strlen(labstr) + 120);
+    string epilog = (string) checked_malloc(strlen(labstr) + 40);
     string prologFormat = ".text\n"
                           ".globl %s\n"
                           ".type %s, @function\n"
                           ".set %s_frameSize, %d\n"
                           "%s:\n"
-                          "SUBQ %s_frameSize, %%rsp\n";
+                          "SUBQ $%s_frameSize, %%rsp\n";
+    string epilogFormat = "ADDQ $%s_frameSize, %%rsp\n";
 
     sprintf(prolog, prologFormat, labstr, labstr, labstr, frame->size * F_wordSize, labstr, labstr);
+    sprintf(epilog, epilogFormat, labstr);
 
     return AS_Proc(prolog, body, epilog);
 }

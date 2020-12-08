@@ -27,8 +27,8 @@ static void emit(AS_instr);
 AS_instrList F_codegen(F_frame frame, T_stmList stms) {
     string name = Temp_labelstring(F_name(frame));
     
-    assemFP = (string) checked_malloc(strlen(name) + 22);
-    sprintf(assemFP, "ADDQ %s_frameSize, `d0", name);
+    assemFP = (string) checked_malloc(strlen(name) + 30);
+    sprintf(assemFP, "ADDQ $%s_frameSize, `d0", name);
 
     insts = last = NULL;
     for (; stms != NULL; stms = stms->tail)
@@ -55,7 +55,7 @@ static Temp_temp munchExp(T_exp exp) {
             emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(F_RAX(), NULL), Temp_TempList(result, NULL)));
         } else {
             string assem = NULL;
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(left, NULL), Temp_TempList(result, NULL)));
+            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(left, NULL)));
             switch (exp->u.BINOP.op) {
             case T_plus: assem = "ADDQ `s0, `d0"; break;
             case T_minus: assem = "SUBQ `s0, `d0"; break;
@@ -85,8 +85,8 @@ static Temp_temp munchExp(T_exp exp) {
     }
     case T_NAME: {
         string labstr = Temp_labelstring(exp->u.NAME);
-        string assem = (string) checked_malloc(strlen(labstr) + 12);
-        sprintf(assem, "MOVQ %s, `d0", labstr);
+        string assem = (string) checked_malloc(strlen(labstr) + 20);
+        sprintf(assem, "MOVQ $%s, `d0", labstr);
         emit(AS_Oper(assem, Temp_TempList(result, NULL), NULL, NULL));
         break;
     }

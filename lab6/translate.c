@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "util.h"
 #include "table.h"
 #include "symbol.h"
@@ -154,6 +155,21 @@ Tr_exp Tr_stringExp(string value) {
 }
 
 Tr_exp Tr_callExp(Temp_label label, Tr_level caller, Tr_level callee, Tr_expList args) {
+    string labstr = Temp_labelstring(label);
+
+    if (strcmp(labstr, "print") == 0 ||
+        strcmp(labstr, "printi") == 0 ||
+        strcmp(labstr, "flush") == 0 ||
+        strcmp(labstr, "getchar") == 0 ||
+        strcmp(labstr, "ord") == 0 ||
+        strcmp(labstr, "chr") == 0 ||
+        strcmp(labstr, "size") == 0 ||
+        strcmp(labstr, "substring") == 0 ||
+        strcmp(labstr, "concat") == 0 ||
+        strcmp(labstr, "not") == 0 ||
+        strcmp(labstr, "exit") == 0)
+        return Tr_Ex(F_externalCall(labstr, expListToExpList(args)));
+
     return Tr_Ex(T_Call(
         T_Name(label),
         T_ExpList(

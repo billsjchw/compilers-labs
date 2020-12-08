@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+int tigermain(long);
 
 int *initArray(int size, int init)
 {int i;

@@ -98,11 +98,11 @@ void doStr(FILE *out, Temp_label label, string str) {
   char *p = NULL;
   
   fprintf(out, ".section .rodata\n");
-	fprintf(out, ".%s:\n", S_name(label));
+	fprintf(out, "%s:\n", S_name(label));
   fprintf(out, ".long %d\n", length);
 	fprintf(out, ".ascii \"");
   for (p = str; *p; ++p)
-    fprintf(out, "\\%o", *p);
+    fprintf(out, "\\%03o", *p);
 	fprintf(out, "\"\n");
 }
 
