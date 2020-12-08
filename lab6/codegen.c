@@ -28,7 +28,7 @@ AS_instrList F_codegen(F_frame frame, T_stmList stms) {
     string name = Temp_labelstring(F_name(frame));
     
     assemFP = (string) checked_malloc(strlen(name) + 30);
-    sprintf(assemFP, "ADDQ $%s_frameSize, `d0", name);
+    sprintf(assemFP, "LEAQ %s_frameSize(`s0), `d0", name);
 
     insts = last = NULL;
     for (; stms != NULL; stms = stms->tail)
@@ -72,12 +72,10 @@ static Temp_temp munchExp(T_exp exp) {
         break;
     }
     case T_TEMP: {
-        if (exp->u.TEMP == F_FP()) {
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RSP(), NULL)));
-            emit(AS_Oper(assemFP, Temp_TempList(result, NULL), NULL, NULL));
-        } else {
+        if (exp->u.TEMP == F_FP())
+            emit(AS_Oper(assemFP, Temp_TempList(result, NULL), Temp_TempList(F_RSP(), NULL), NULL));
+        else
             emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(exp->u.TEMP, NULL)));
-        }
         break;
     }
     case T_ESEQ: {

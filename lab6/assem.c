@@ -197,3 +197,56 @@ void AS_rewrite(AS_instrList insts, Temp_map map) {
     p = p->tail;
   }
 }
+
+AS_instrList AS_rewriteSpill(F_frame frame, AS_instrList insts, Temp_tempList spills) {
+  AS_instrList ret = insts;
+  
+  for (; spills != NULL; spills = spills->tail) {
+    F_access access = F_allocLocal(frame, TRUE);
+    Temp_temp temp = Temp_newtemp();
+    AS_instr instLoad = F_load(access, temp, frame);
+    AS_instr instStore = F_store(access, temp, frame);
+    AS_instrList p = NULL;
+    AS_instrList *last = NULL;
+    for (p = insts, last = &ret; p != NULL; last = &p->tail, p = p->tail) {
+      bool use = FALSE;
+      Temp_tempList src = NULL;
+      AS_instr inst = p->head;
+      Temp_tempList q = NULL;
+      if (inst->kind == I_OPER)
+        src = inst->u.OPER.src;
+      else if (inst->kind == I_MOVE)
+        src = inst->u.MOVE.src;
+      for (q = src; q != NULL; q = q->tail)
+        if (q->head == spills->head) {
+          q->head = temp;
+          use = TRUE;
+        }
+      if (use)
+        *last = AS_InstrList(instLoad, p);
+    }
+    for (p = insts; p != NULL;) {
+      bool def = FALSE;
+      Temp_tempList dst = NULL;
+      AS_instr inst = p->head;
+      Temp_tempList q = NULL;
+      if (inst->kind == I_OPER)
+        dst = inst->u.OPER.dst;
+      else if (inst->kind == I_MOVE)
+        dst = inst->u.MOVE.dst;
+      for (q = dst; q != NULL; q = q->tail)
+        if (q->head == spills->head) {
+          q->head = temp;
+          def = TRUE;
+        }
+      if (def) {
+        p->tail = AS_InstrList(instStore, p->tail);
+        p = p->tail->tail;
+      } else {
+        p = p->tail;
+      }
+    }
+  }
+
+  return ret;
+}

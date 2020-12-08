@@ -374,6 +374,28 @@ AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
     return AS_Proc(prolog, body, epilog);
 }
 
+AS_instr F_load(F_access access, Temp_temp temp, F_frame frame) {
+    string labstr = Temp_labelstring(frame->name);
+    string assem = (string) checked_malloc(strlen(labstr) + 50);
+    
+    assert(access->kind == inFrame);
+
+    sprintf(assem, "MOVQ %s_frameSize+(%d)(`s0), `d0", labstr, access->u.offset * F_wordSize);
+
+    return AS_Oper(assem, Temp_TempList(temp, NULL), Temp_TempList(F_RSP(), NULL), NULL);
+}
+
+AS_instr F_store(F_access access, Temp_temp temp, F_frame frame) {
+    string labstr = Temp_labelstring(frame->name);
+    string assem = (string) checked_malloc(strlen(labstr) + 50);
+    
+    assert(access->kind == inFrame);
+
+    sprintf(assem, "MOVQ `s0, %s_frameSize+(%d)(`s1)", labstr, access->u.offset * F_wordSize);
+
+    return AS_Oper(assem, NULL, Temp_TempList(temp, Temp_TempList(F_RSP(), NULL)), NULL);
+}
+
 static Temp_temp fp = NULL;
 static Temp_temp rdi = NULL;
 static Temp_temp rsi = NULL;
