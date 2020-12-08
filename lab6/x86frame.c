@@ -365,7 +365,8 @@ AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
                           ".set %s_frameSize, %d\n"
                           "%s:\n"
                           "SUBQ $%s_frameSize, %%rsp\n";
-    string epilogFormat = "ADDQ $%s_frameSize, %%rsp\n";
+    string epilogFormat = "ADDQ $%s_frameSize, %%rsp\n"
+                          "RET\n";
 
     sprintf(prolog, prologFormat, labstr, labstr, labstr, frame->size * F_wordSize, labstr, labstr);
     sprintf(epilog, epilogFormat, labstr);
