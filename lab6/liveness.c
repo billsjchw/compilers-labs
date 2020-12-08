@@ -33,6 +33,27 @@ struct Live_graph Live_liveness(G_graph flow) {
 	G_nodeList nodes = G_nodes(flow);
 	TAB_table nodeMap = TAB_empty();
 	bool change = TRUE;
+	G_nodeList r = NULL;
+
+	for (r = nodes; r != NULL; r = r->tail) {
+		Temp_tempList p = NULL;
+		Temp_tempList src = NULL;
+		Temp_tempList dst = NULL;
+		AS_instr inst = (AS_instr) G_nodeInfo(r->head);
+		if (inst->kind == I_OPER) {
+			src = inst->u.OPER.src;
+			dst = inst->u.OPER.dst;
+		} else if (inst->kind == I_MOVE) {
+			src = inst->u.MOVE.src;
+			dst = inst->u.MOVE.dst;
+		}
+		for (p = src; p != NULL; p = p->tail)
+			if (TAB_look(nodeMap, p->head) == NULL)
+				TAB_enter(nodeMap, p->head, G_Node(lg.graph, p->head));
+		for (p = dst; p != NULL; p = p->tail)
+			if (TAB_look(nodeMap, p->head) == NULL)
+				TAB_enter(nodeMap, p->head, G_Node(lg.graph, p->head));
+	}
 
 	while (change) {
 		change = FALSE;
@@ -63,17 +84,9 @@ struct Live_graph Live_liveness(G_graph flow) {
 		for (p = FG_def(nodes->head); p != NULL; p = p->tail) {
 			G_node u = (G_node) TAB_look(nodeMap, p->head);
 			Temp_tempList q = NULL;
-			if (u == NULL) {
-				u = G_Node(lg.graph, p->head);
-				TAB_enter(nodeMap, p->head, u);
-			}
 			for (q = (Temp_tempList) G_look(liveMap, nodes->head); q != NULL; q = q->tail)
 				if (!FG_isMove(nodes->head) || q->head != FG_use(nodes->head)->head) {
 					G_node v = (G_node) TAB_look(nodeMap, q->head);
-					if (v == NULL) {
-						v = G_Node(lg.graph, q->head);
-						TAB_enter(nodeMap, q->head, v);
-					}
 					if (u != v) {
 						G_addEdge(u, v);
 						G_addEdge(v, u);
@@ -85,14 +98,6 @@ struct Live_graph Live_liveness(G_graph flow) {
 			Temp_temp s = FG_use(nodes->head)->head;
 			G_node dst = (G_node) TAB_look(nodeMap, t);
 			G_node src = (G_node) TAB_look(nodeMap, s);
-			if (dst == NULL) {
-				dst = G_Node(lg.graph, t);
-				TAB_enter(nodeMap, t, dst);
-			}
-			if (src == NULL) {
-				src = G_Node(lg.graph, s);
-				TAB_enter(nodeMap, s, src);
-			}
 			lg.moves = Live_MoveList(src, dst, lg.moves);
 		}
 	}
