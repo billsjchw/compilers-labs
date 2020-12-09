@@ -104,7 +104,7 @@ Tr_level Tr_newLevel(Tr_level parent, Temp_label label, U_boolList escapes) {
 Tr_accessList Tr_formals(Tr_level level) {
     F_accessList accesses = F_formals(level->frame);
 
-    return accessListToAccessList(accesses, level);
+    return accessListToAccessList(accesses->tail, level);
 }
 
 Tr_access Tr_allocLocal(Tr_level level, bool escape) {
@@ -213,7 +213,7 @@ Tr_exp Tr_stringOpExp(A_oper oper, Tr_exp left, Tr_exp right) {
 
     return Tr_Ex(F_externalCall(
         "stringEqual",
-        T_ExpList(T_Const(oper), T_ExpList(unEx(left), T_ExpList(unEx(right), NULL)))
+        T_ExpList(unEx(left), T_ExpList(unEx(right), NULL))
     ));
 }
 
@@ -281,20 +281,22 @@ Tr_exp Tr_whileExp(Tr_exp test, Tr_exp body, Temp_label done) {
     );
 }
 
-Tr_exp Tr_forExp(Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done) {
+Tr_exp Tr_forExp(Tr_access access, Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done) {
     Temp_label start = Temp_newlabel();
-    Temp_temp cnt = Temp_newtemp();
+    Temp_label loop = Temp_newlabel();
     Temp_temp limit = Temp_newtemp();
 
     return Tr_Nx(
-        T_Seq(T_Move(T_Temp(cnt), unEx(lo)),
+        T_Seq(T_Move(F_simpleVar(access->access, T_Temp(F_FP())), unEx(lo)),
         T_Seq(T_Move(T_Temp(limit), unEx(hi)),
-        T_Seq(T_Cjump(T_le, T_Temp(cnt), T_Temp(limit), start, done),
+        T_Seq(T_Cjump(T_le, F_simpleVar(access->access, T_Temp(F_FP())), T_Temp(limit), start, done),
+        T_Seq(T_Label(loop),
+        T_Seq(T_Move(F_simpleVar(access->access, T_Temp(F_FP())),
+                     T_Binop(T_plus, F_simpleVar(access->access, T_Temp(F_FP())), T_Const(1))),
         T_Seq(T_Label(start),
         T_Seq(unNx(body),
-        T_Seq(T_Move(T_Temp(cnt), T_Binop(T_plus, T_Temp(cnt), T_Const(1))),
-        T_Seq(T_Cjump(T_lt, T_Temp(cnt), T_Temp(limit), start, done),
-              T_Label(done))))))))
+        T_Seq(T_Cjump(T_lt, F_simpleVar(access->access, T_Temp(F_FP())), T_Temp(limit), loop, done),
+              T_Label(done)))))))))
     );
 }
 

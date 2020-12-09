@@ -52,7 +52,7 @@ static Temp_temp munchExp(T_exp exp) {
                          Temp_TempList(F_RAX(), NULL), NULL));
             emit(AS_Oper("IDIVQ `s0", Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL)),
                          Temp_TempList(right, Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL))), NULL));
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(F_RAX(), NULL), Temp_TempList(result, NULL)));
+            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
         } else {
             string assem = NULL;
             emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(left, NULL)));

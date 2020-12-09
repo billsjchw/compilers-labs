@@ -210,7 +210,7 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
         S_endScope(venv);
         if (etLo.ty->kind != Ty_int || etHi.ty->kind != Ty_int || etBody.ty->kind != Ty_void)
             exit(1);
-        return expTy(Tr_forExp(etLo.exp, etHi.exp, etBody.exp, newDone), Ty_Void());
+        return expTy(Tr_forExp(access, etLo.exp, etHi.exp, etBody.exp, newDone), Ty_Void());
     }
     case A_breakExp: {
         if (done == NULL)

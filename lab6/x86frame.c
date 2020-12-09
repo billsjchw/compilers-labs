@@ -443,13 +443,14 @@ static F_accessList F_AccessList(F_access head, F_accessList tail) {
 }
 
 static F_accessList formalAccessList(int k, U_boolList escapes, F_frame frame) {
+    F_access access = NULL;
+    
     if (escapes == NULL)
         return NULL;
 
-    return F_AccessList(k < F_argregsNum ?
-                            F_allocLocal(frame, escapes->head) :
-                            F_InFrameAccess(k - F_argregsNum + 1),
-                        formalAccessList(k + 1, escapes->tail, frame));
+    access = k < F_argregsNum ? F_allocLocal(frame, escapes->head) : F_InFrameAccess(k - F_argregsNum + 1);
+
+    return F_AccessList(access, formalAccessList(k + 1, escapes->tail, frame));
 }
 
 static T_stm shiftOfView(F_accessList formals, Temp_tempList regs) {

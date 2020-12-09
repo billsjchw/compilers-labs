@@ -260,7 +260,10 @@ static void trace(T_stmList list)
       Temp_label false = Temp_newlabel();
       last->tail->head = T_Cjump(s->u.CJUMP.op, s->u.CJUMP.left,
 				 s->u.CJUMP.right, s->u.CJUMP.true, false);
-      last->tail->tail = T_StmList(T_Label(false), getNext());
+      // last->tail->tail = T_StmList(T_Label(false), getNext());
+      last->tail->tail = T_StmList(T_Label(false),
+                         T_StmList(T_Jump(T_Name(s->u.CJUMP.false), Temp_LabelList(s->u.CJUMP.false, NULL)),
+                                   getNext()));
     }
   }
   else assert(0);

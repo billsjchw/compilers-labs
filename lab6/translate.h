@@ -42,7 +42,7 @@ Tr_exp Tr_seqExp(Tr_exp, Tr_exp);
 Tr_exp Tr_assignExp(Tr_exp, Tr_exp);
 Tr_exp Tr_ifExp(Tr_exp, Tr_exp, Tr_exp);
 Tr_exp Tr_whileExp(Tr_exp, Tr_exp, Temp_label);
-Tr_exp Tr_forExp(Tr_exp, Tr_exp, Tr_exp, Temp_label);
+Tr_exp Tr_forExp(Tr_access, Tr_exp, Tr_exp, Tr_exp, Temp_label);
 Tr_exp Tr_breakExp(Temp_label);
 Tr_exp Tr_letExp(Tr_expList, Tr_exp);
 Tr_exp Tr_arrayExp(Tr_exp, Tr_exp);
