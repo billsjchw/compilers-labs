@@ -155,7 +155,7 @@ void AS_printInstrList (FILE *out, AS_instrList iList, Temp_map m)
   for (; iList; iList=iList->tail) {
     AS_print(out, iList->head, m);
   }
-  fprintf(out, "\n");
+  // fprintf(out, "\n");
 }
 
 AS_proc AS_Proc(string p, AS_instrList b, string e)

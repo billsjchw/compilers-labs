@@ -89,7 +89,7 @@ static Temp_temp munchExp(T_exp exp) {
         break;
     }
     case T_CONST: {
-        string assem = (string) checked_malloc(24);
+        string assem = (string) checked_malloc(30);
         sprintf(assem, "MOVQ $%d, `d0", exp->u.CONST);
         emit(AS_Oper(assem, Temp_TempList(result, NULL), NULL, NULL));
         break;
@@ -109,7 +109,7 @@ static Temp_temp munchExp(T_exp exp) {
         }
         emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
         if (argsNum > F_argregsNum) {
-            string assem = (string) checked_malloc(24);
+            string assem = (string) checked_malloc(30);
             sprintf(assem, "ADDQ $%d, `d0", F_wordSize * (argsNum - F_argregsNum));
             emit(AS_Oper(assem, Temp_TempList(F_RSP(), NULL), NULL, NULL));
         }
@@ -129,9 +129,7 @@ static void munchStm(T_stm stm) {
     }
     case T_LABEL: {
         string labstr = Temp_labelstring(stm->u.LABEL);
-        string assem = (string) checked_malloc(strlen(labstr) + 3);
-        sprintf(assem, "%s", labstr);
-        emit(AS_Label(assem, stm->u.LABEL));
+        emit(AS_Label(labstr, stm->u.LABEL));
         break;
     }
     case T_JUMP: {
@@ -162,7 +160,7 @@ static void munchStm(T_stm stm) {
         case T_ne: jmpInstStr = "JNE"; break;
         default: assert(0);
         }
-        assem = (string) checked_malloc(strlen(jmpInstStr) + strlen(labstr) + 3);
+        assem = (string) checked_malloc(strlen(jmpInstStr) + strlen(labstr) + 10);
         sprintf(assem, "%s %s", jmpInstStr, labstr);
         emit(AS_Oper(assem, NULL, NULL,
                      AS_Targets(Temp_LabelList(stm->u.CJUMP.true, Temp_LabelList(stm->u.CJUMP.false, NULL)))));
