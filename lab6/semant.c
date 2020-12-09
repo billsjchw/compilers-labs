@@ -200,7 +200,7 @@ struct expty transExp(S_table venv, S_table tenv, A_exp exp, Tr_level level, Tem
     }
     case A_forExp: {
         Temp_label newDone = Temp_newlabel();
-        Tr_access access = Tr_allocLocal(level, TRUE);
+        Tr_access access = Tr_allocLocal(level, exp->u.forr.escape);
         struct expty etLo = transExp(venv, tenv, exp->u.forr.lo, level, done);
         struct expty etHi = transExp(venv, tenv, exp->u.forr.hi, level, done);
         struct expty etBody = {NULL, NULL};
