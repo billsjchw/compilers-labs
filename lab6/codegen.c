@@ -28,7 +28,7 @@ AS_instrList F_codegen(F_frame frame, T_stmList stms) {
     string name = Temp_labelstring(F_name(frame));
     
     assemFP = (string) checked_malloc(strlen(name) + 30);
-    sprintf(assemFP, "LEAQ %s_frameSize(`s0), `d0", name);
+    sprintf(assemFP, "leaq %s_frameSize(`s0), `d0", name);
 
     insts = last = NULL;
     for (; stms != NULL; stms = stms->tail)
@@ -47,19 +47,19 @@ static Temp_temp munchExp(T_exp exp) {
         Temp_temp left = munchExp(exp->u.BINOP.left);
         Temp_temp right = munchExp(exp->u.BINOP.right);
         if (exp->u.BINOP.op == T_div) {
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(F_RAX(), NULL), Temp_TempList(left, NULL)));
-            emit(AS_Oper("CQTO", Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL)),
+            emit(AS_Move("movq `s0, `d0", Temp_TempList(F_RAX(), NULL), Temp_TempList(left, NULL)));
+            emit(AS_Oper("cqto", Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL)),
                          Temp_TempList(F_RAX(), NULL), NULL));
-            emit(AS_Oper("IDIVQ `s0", Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL)),
+            emit(AS_Oper("idivq `s0", Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL)),
                          Temp_TempList(right, Temp_TempList(F_RAX(), Temp_TempList(F_RDX(), NULL))), NULL));
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
+            emit(AS_Move("movq `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
         } else {
             string assem = NULL;
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(left, NULL)));
+            emit(AS_Move("movq `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(left, NULL)));
             switch (exp->u.BINOP.op) {
-            case T_plus: assem = "ADDQ `s0, `d0"; break;
-            case T_minus: assem = "SUBQ `s0, `d0"; break;
-            case T_mul: assem = "IMULQ `s0, `d0"; break;
+            case T_plus: assem = "addq `s0, `d0"; break;
+            case T_minus: assem = "subq `s0, `d0"; break;
+            case T_mul: assem = "imulq `s0, `d0"; break;
             default: assert(0);
             }
             emit(AS_Oper(assem, Temp_TempList(result, NULL), Temp_TempList(right, NULL), NULL));
@@ -68,14 +68,14 @@ static Temp_temp munchExp(T_exp exp) {
     }
     case T_MEM: {
         Temp_temp addr = munchExp(exp->u.MEM);
-        emit(AS_Oper("MOVQ (`s0), `d0", Temp_TempList(result, NULL), Temp_TempList(addr, NULL), NULL));
+        emit(AS_Oper("movq (`s0), `d0", Temp_TempList(result, NULL), Temp_TempList(addr, NULL), NULL));
         break;
     }
     case T_TEMP: {
         if (exp->u.TEMP == F_FP())
             emit(AS_Oper(assemFP, Temp_TempList(result, NULL), Temp_TempList(F_RSP(), NULL), NULL));
         else
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(exp->u.TEMP, NULL)));
+            emit(AS_Move("movq `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(exp->u.TEMP, NULL)));
         break;
     }
     case T_ESEQ: {
@@ -84,13 +84,13 @@ static Temp_temp munchExp(T_exp exp) {
     case T_NAME: {
         string labstr = Temp_labelstring(exp->u.NAME);
         string assem = (string) checked_malloc(strlen(labstr) + 20);
-        sprintf(assem, "LEAQ %s(%%rip), `d0", labstr);
+        sprintf(assem, "leaq %s(%%rip), `d0", labstr);
         emit(AS_Oper(assem, Temp_TempList(result, NULL), NULL, NULL));
         break;
     }
     case T_CONST: {
         string assem = (string) checked_malloc(30);
-        sprintf(assem, "MOVQ $%d, `d0", exp->u.CONST);
+        sprintf(assem, "movq $%d, `d0", exp->u.CONST);
         emit(AS_Oper(assem, Temp_TempList(result, NULL), NULL, NULL));
         break;
     }
@@ -101,16 +101,16 @@ static Temp_temp munchExp(T_exp exp) {
         if (exp->u.CALL.fun->kind == T_NAME) {
             string labstr = Temp_labelstring(exp->u.CALL.fun->u.NAME);
             string assem = (string) checked_malloc(strlen(labstr) + 10);
-            sprintf(assem, "CALL %s", labstr);
+            sprintf(assem, "call %s", labstr);
             emit(AS_Oper(assem, F_callersaves(), Temp_TempList(F_RSP(), NULL), NULL));
         } else {
             Temp_temp addr = munchExp(exp->u.CALL.fun);
-            emit(AS_Oper("CALL *`s0", F_callersaves(), Temp_TempList(addr, Temp_TempList(F_RSP(), NULL)), NULL));
+            emit(AS_Oper("call *`s0", F_callersaves(), Temp_TempList(addr, Temp_TempList(F_RSP(), NULL)), NULL));
         }
-        emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
+        emit(AS_Move("movq `s0, `d0", Temp_TempList(result, NULL), Temp_TempList(F_RAX(), NULL)));
         if (argsNum > F_argregsNum) {
             string assem = (string) checked_malloc(30);
-            sprintf(assem, "ADDQ $%d, `d0", F_wordSize * (argsNum - F_argregsNum));
+            sprintf(assem, "addq $%d, `d0", F_wordSize * (argsNum - F_argregsNum));
             emit(AS_Oper(assem, Temp_TempList(F_RSP(), NULL), NULL, NULL));
         }
         break;
@@ -136,11 +136,11 @@ static void munchStm(T_stm stm) {
         if (stm->u.JUMP.exp->kind == T_NAME) {
             string labstr = Temp_labelstring(stm->u.JUMP.exp->u.NAME);
             string assem = (string) checked_malloc(strlen(labstr) + 10);
-            sprintf(assem, "JMP %s", labstr);
+            sprintf(assem, "jmp %s", labstr);
             emit(AS_Oper(assem, NULL, NULL, AS_Targets(stm->u.JUMP.jumps)));
         } else {
             Temp_temp temp = munchExp(stm->u.JUMP.exp);
-            emit(AS_Oper("JMP *`s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
+            emit(AS_Oper("jmp *`s0", NULL, Temp_TempList(temp, NULL), AS_Targets(stm->u.JUMP.jumps)));
         }
         break;
     }
@@ -150,14 +150,14 @@ static void munchStm(T_stm stm) {
         string labstr = Temp_labelstring(stm->u.CJUMP.true);
         string jmpInstStr = NULL;
         string assem = NULL;
-        emit(AS_Oper("CMP `s0, `s1", NULL, Temp_TempList(right, Temp_TempList(left, NULL)), NULL));
+        emit(AS_Oper("cmp `s0, `s1", NULL, Temp_TempList(right, Temp_TempList(left, NULL)), NULL));
         switch (stm->u.CJUMP.op) {
-        case T_lt: jmpInstStr = "JL"; break;
-        case T_gt: jmpInstStr = "JG"; break;
-        case T_le: jmpInstStr = "JLE"; break;
-        case T_ge: jmpInstStr = "JGE"; break;
-        case T_eq: jmpInstStr = "JE"; break;
-        case T_ne: jmpInstStr = "JNE"; break;
+        case T_lt: jmpInstStr = "jl"; break;
+        case T_gt: jmpInstStr = "jg"; break;
+        case T_le: jmpInstStr = "jle"; break;
+        case T_ge: jmpInstStr = "jge"; break;
+        case T_eq: jmpInstStr = "je"; break;
+        case T_ne: jmpInstStr = "jne"; break;
         default: assert(0);
         }
         assem = (string) checked_malloc(strlen(jmpInstStr) + strlen(labstr) + 10);
@@ -168,15 +168,15 @@ static void munchStm(T_stm stm) {
     }
     case T_MOVE: {
         if (stm->u.MOVE.src->kind == T_TEMP && stm->u.MOVE.dst->kind == T_TEMP) {
-            emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL),
+            emit(AS_Move("movq `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL),
                          Temp_TempList(stm->u.MOVE.src->u.TEMP, NULL)));
         } else {
             Temp_temp src = munchExp(stm->u.MOVE.src);
             if (stm->u.MOVE.dst->kind == T_MEM) {
                 Temp_temp addr = munchExp(stm->u.MOVE.dst->u.MEM);
-                emit(AS_Oper("MOVQ `s0, (`s1)", NULL, Temp_TempList(src, Temp_TempList(addr, NULL)), NULL));
+                emit(AS_Oper("movq `s0, (`s1)", NULL, Temp_TempList(src, Temp_TempList(addr, NULL)), NULL));
             } else {
-                emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL), Temp_TempList(src, NULL)));
+                emit(AS_Move("movq `s0, `d0", Temp_TempList(stm->u.MOVE.dst->u.TEMP, NULL), Temp_TempList(src, NULL)));
             }
         }
         break;
@@ -216,11 +216,11 @@ static Temp_tempList prepareArgs(Temp_tempList args, Temp_tempList regs) {
 
     temps = prepareArgs(args->tail, regs == NULL ? NULL : regs->tail);
     if (regs == NULL) {
-        emit(AS_Oper("PUSHQ `s0", Temp_TempList(F_RSP(), NULL),
+        emit(AS_Oper("pushq `s0", Temp_TempList(F_RSP(), NULL),
                      Temp_TempList(args->head, Temp_TempList(F_RSP(), NULL)), NULL));
         return temps;
     } else {
-        emit(AS_Move("MOVQ `s0, `d0", Temp_TempList(regs->head, NULL), Temp_TempList(args->head, NULL)));
+        emit(AS_Move("movq `s0, `d0", Temp_TempList(regs->head, NULL), Temp_TempList(args->head, NULL)));
         return Temp_TempList(regs->head, temps);
     }
 }

@@ -364,9 +364,9 @@ AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
                           ".type %s, @function\n"
                           ".set %s_frameSize, %d\n"
                           "%s:\n"
-                          "SUBQ $%s_frameSize, %%rsp\n";
-    string epilogFormat = "ADDQ $%s_frameSize, %%rsp\n"
-                          "RET\n";
+                          "subq $%s_frameSize, %%rsp\n";
+    string epilogFormat = "addq $%s_frameSize, %%rsp\n"
+                          "ret\n";
 
     sprintf(prolog, prologFormat, labstr, labstr, labstr, frame->size * F_wordSize, labstr, labstr);
     sprintf(epilog, epilogFormat, labstr);
@@ -380,7 +380,7 @@ AS_instr F_load(F_access access, Temp_temp temp, F_frame frame) {
     
     assert(access->kind == inFrame);
 
-    sprintf(assem, "MOVQ %s_frameSize+(%d)(`s0), `d0", labstr, access->u.offset * F_wordSize);
+    sprintf(assem, "movq %s_frameSize+(%d)(`s0), `d0", labstr, access->u.offset * F_wordSize);
 
     return AS_Oper(assem, Temp_TempList(temp, NULL), Temp_TempList(F_RSP(), NULL), NULL);
 }
@@ -391,7 +391,7 @@ AS_instr F_store(F_access access, Temp_temp temp, F_frame frame) {
     
     assert(access->kind == inFrame);
 
-    sprintf(assem, "MOVQ `s0, %s_frameSize+(%d)(`s1)", labstr, access->u.offset * F_wordSize);
+    sprintf(assem, "movq `s0, %s_frameSize+(%d)(`s1)", labstr, access->u.offset * F_wordSize);
 
     return AS_Oper(assem, NULL, Temp_TempList(temp, Temp_TempList(F_RSP(), NULL)), NULL);
 }
