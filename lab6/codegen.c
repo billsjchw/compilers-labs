@@ -84,7 +84,7 @@ static Temp_temp munchExp(T_exp exp) {
     case T_NAME: {
         string labstr = Temp_labelstring(exp->u.NAME);
         string assem = (string) checked_malloc(strlen(labstr) + 20);
-        sprintf(assem, "MOVQ $%s, `d0", labstr);
+        sprintf(assem, "LEAQ %s(%%rip), `d0", labstr);
         emit(AS_Oper(assem, Temp_TempList(result, NULL), NULL, NULL));
         break;
     }

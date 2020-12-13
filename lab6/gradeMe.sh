@@ -33,7 +33,7 @@ fi
 		if [ ${tcase##*.} = "tig" ]; then
 			tfileName=${tcase##*/}
 			./$BIN $TESTCASEDIR/$tfileName &>/dev/null
-			gcc -Wl,--wrap,getchar -m64 -no-pie $TESTCASEDIR/${tfileName}.s runtime.c -o test.out &>/dev/null
+			gcc -Wl,--wrap,getchar -m64 $TESTCASEDIR/${tfileName}.s runtime.c -o test.out &>/dev/null
 			if [ ! -s test.out ]; then
 				echo -e "${BLUE_COLOR}[*_*]$ite: Link error. [$tfileName]${RES}"
  				rm $TESTCASEDIR/${tfileName}.s 
