@@ -336,7 +336,7 @@ T_exp F_simpleVar(F_access access, T_exp framePtr) {
 }
 
 T_exp F_staticLink(T_exp framePtr) {
-    return T_Mem(T_Binop(T_minus, framePtr, T_Const(F_wordSize)));
+    return T_Mem(T_Binop(T_plus, framePtr, T_Const(-F_wordSize)));
 }
 
 F_frag F_string(Temp_label label, string str) {
@@ -378,9 +378,9 @@ AS_instr F_load(F_access access, Temp_temp temp, F_frame frame) {
     string labstr = Temp_labelstring(frame->name);
     string assem = (string) checked_malloc(strlen(labstr) + 50);
     
-    assert(access->kind == inFrame);
+    assert(access->kind == inFrame && access->u.offset < 0);
 
-    sprintf(assem, "movq %s_frameSize+(%d)(`s0), `d0", labstr, access->u.offset * F_wordSize);
+    sprintf(assem, "movq %s_frameSize%d(`s0), `d0", labstr, access->u.offset * F_wordSize);
 
     return AS_Oper(assem, Temp_TempList(temp, NULL), Temp_TempList(F_RSP(), NULL), NULL);
 }
@@ -389,9 +389,9 @@ AS_instr F_store(F_access access, Temp_temp temp, F_frame frame) {
     string labstr = Temp_labelstring(frame->name);
     string assem = (string) checked_malloc(strlen(labstr) + 50);
     
-    assert(access->kind == inFrame);
+    assert(access->kind == inFrame && access->u.offset < 0);
 
-    sprintf(assem, "movq `s0, %s_frameSize+(%d)(`s1)", labstr, access->u.offset * F_wordSize);
+    sprintf(assem, "movq `s0, %s_frameSize%d(`s1)", labstr, access->u.offset * F_wordSize);
 
     return AS_Oper(assem, NULL, Temp_TempList(temp, Temp_TempList(F_RSP(), NULL)), NULL);
 }
