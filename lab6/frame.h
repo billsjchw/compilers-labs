@@ -38,6 +38,7 @@ F_fragList F_FragList(F_frag, F_fragList);
 
 extern const int F_wordSize;
 extern const int F_argregsNum;
+extern const int F_regsNum;
 
 Temp_temp F_FP(void);
 Temp_temp F_RDI(void);

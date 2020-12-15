@@ -90,6 +90,7 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
 
 const int F_wordSize = 8;
 const int F_argregsNum = 6;
+const int F_regsNum = 16;
 
 Temp_temp F_FP(void) {
     if (fp == NULL)

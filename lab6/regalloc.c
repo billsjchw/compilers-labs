@@ -15,15 +15,11 @@
 
 struct RA_result RA_regAlloc(F_frame frame, AS_instrList insts) {
 	struct RA_result ret = {NULL, NULL};
-	G_graph flow = FG_AssemFlowGraph(insts);
-	struct Live_graph lg = Live_liveness(flow);
-	struct COL_result cr = COL_color(lg.graph, F_tempMap(), F_registers());
+	struct COL_result cr = COL_color(Live_liveness(FG_AssemFlowGraph(insts)));
 
 	while (cr.spills != NULL) {
 		insts = AS_rewriteSpill(frame, insts, cr.spills);
-		flow = FG_AssemFlowGraph(insts);
-		lg = Live_liveness(flow);
-		cr = COL_color(lg.graph, F_tempMap(), F_registers());
+		cr = COL_color(Live_liveness(FG_AssemFlowGraph(insts)));
 	}
 
 	ret.coloring = cr.coloring;

@@ -164,6 +164,8 @@ AS_proc AS_Proc(string p, AS_instrList b, string e)
  return proc;
 }
 
+static Temp_tempList badSpillChoices;
+
 void AS_rewrite(AS_instrList insts, Temp_map map) {
   AS_instrList ret = insts;
   AS_instrList *last = &ret;
@@ -208,6 +210,7 @@ AS_instrList AS_rewriteSpill(F_frame frame, AS_instrList insts, Temp_tempList sp
     AS_instr instStore = F_store(access, temp, frame);
     AS_instrList p = NULL;
     AS_instrList *last = NULL;
+    badSpillChoices = Temp_TempList(temp, badSpillChoices);
     for (p = insts, last = &ret; p != NULL; last = &p->tail, p = p->tail) {
       bool use = FALSE;
       Temp_tempList src = NULL;
@@ -250,3 +253,9 @@ AS_instrList AS_rewriteSpill(F_frame frame, AS_instrList insts, Temp_tempList sp
 
   return ret;
 }
+
+Temp_tempList AS_badSpillChoices() {
+  return badSpillChoices;
+}
+
+static Temp_tempList badSpillChoices = NULL;
