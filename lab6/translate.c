@@ -225,7 +225,7 @@ Tr_exp Tr_recordExp(Tr_expList exps) {
         T_Seq(
             T_Move(
                 T_Temp(base),
-                F_externalCall("malloc", T_ExpList(T_Const(n * F_wordSize), NULL))
+                F_externalCall("allocRecord", T_ExpList(T_Const(n * F_wordSize), NULL))
             ),
             recordExpHelper(exps, 0, base)
         ),
